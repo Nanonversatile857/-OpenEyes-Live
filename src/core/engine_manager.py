@@ -98,9 +98,17 @@ class EngineManager:
     def _resolve_engine_class(self, name: str) -> Type[BaseEngine]:
         """Map a registry name to an engine class.
 
-        v0.1.0 implements only ``encoder`` and ``llm``; other registry
-        entries raise EngineNotFoundError (planned for v0.2.0+).
+        v0.1.x implements ``sampler``, ``filter``, ``encoder`` and ``llm``;
+        other registry entries raise EngineNotFoundError (planned for v0.2.0+).
         """
+        if name == "sampler":
+            from src.engines.video.sampler import FrameSamplerEngine
+
+            return FrameSamplerEngine
+        if name == "filter":
+            from src.engines.video.filter import FrameFilterEngine
+
+            return FrameFilterEngine
         if name == "encoder":
             from src.engines.video.encoder import VisualEncoderEngine
 
@@ -111,7 +119,7 @@ class EngineManager:
             return LanguageEngine
         if name in self._registry.get("engines", {}):
             raise EngineNotFoundError(
-                f"Engine '{name}' is registered but not implemented in v0.1.0"
+                f"Engine '{name}' is registered but not implemented in v0.1.x"
             )
         raise EngineNotFoundError(f"Engine '{name}' not found in registry")
 

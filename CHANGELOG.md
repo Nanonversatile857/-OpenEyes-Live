@@ -11,20 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial project scaffolding
-- Base Vision Engine (SmolVLM2-256M, 167MB)
-- Scene Understanding Engine (SmolVLM2-500M, 437MB)
-- Voice Translation Engine (Mobile-VideoGPT-0.5B, 512MB)
-- Memory Engine (Sentence-BERT + FAISS, 50MB)
-- MCP Gateway Engine (10MB)
-- Engine lifecycle management (download/load/unload)
-- Scheduler with motion detection trigger
-- IP Webcam support
-- Termux (Android) support
-- CLI interface (`openeyes` command)
-- MCP Server with 3 tools (capture, query, alert)
-- ModelScope mirror for China users
-- Auto-downgrade mechanism for low-end devices
-- OOM protection
+- BaseEngine interface, error codes and engine registry (`registry.yaml`)
+- Engine lifecycle management (download/load/unload), mock download
+- FrameSamplerEngine — Stage 1 (uniform / dynamic / keyframe_only, NumPy motion scoring)
+- FrameFilterEngine — Stage 2 (attention / diversity / hybrid selection, heuristic mock scorer)
+- VisualEncoderEngine — Stage 3 (mock embeddings, interface validated)
+- LanguageEngine (mock responses, interface validated)
+- Camera runtime (local webcam + IP Webcam / RTSP)
+- CLI interface (`openeyes` command): `list`, `install`, `watch`, `--version`
+- 51 unit tests + real-camera smoke test of the full video pipeline
 
 ### Documentation
 - README.md (EN + ZH-CN)
@@ -64,10 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - Planned (2026 Q4)
 
 ### Planned Features
-- All 5 engines fully operational
-- Enhanced proactive alert system
-- Android/iOS native app wrappers
-- Performance optimizations for Snapdragon 660
+- Real model weights for encoder (VideoMamba-T / CLIP) and llm (Qwen2.5-2B GGUF)
+- Base Vision Engine (SmolVLM2-256M), Scene Understanding Engine (SmolVLM2-500M)
+- Audio pipeline engines (vad / asr / speaker)
+- Memory Engine (Sentence-BERT + FAISS) and MCP Gateway Engine
+- Scheduler with motion detection trigger, proactive alert system
+- Termux (Android) support and native app wrappers
+- ModelScope mirror downloads, auto-downgrade for low-end devices, OOM protection
 - Additional model quantization formats (Q4_0_4_4)
 - Community-contributed engines
 

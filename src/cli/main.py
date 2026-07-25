@@ -23,8 +23,8 @@ from src.runtime.camera import Camera
 
 __version__ = "0.1.0"
 
-# Engines with a working (mock) implementation in v0.1.0.
-IMPLEMENTED_ENGINES = {"encoder", "llm"}
+# Engines with a working implementation in v0.1.x.
+IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "llm"}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -111,12 +111,17 @@ def cmd_watch(
     interval: float,
     max_frames: int,
 ) -> int:
-    """Run the watch loop: camera -> encoder -> llm -> print description."""
+    """Run the watch loop: camera -> sampler -> filter -> encoder -> llm.
+
+    Frames are accumulated into a batch (size = filter top_k, or 1 when no
+    filter stage is used). Each full batch flows through the remaining stages
+    and produces one printed description.
+    """
     requested: List[str] = [e.strip() for e in engines.split("+") if e.strip()]
     unsupported = [e for e in requested if e not in IMPLEMENTED_ENGINES]
     if unsupported:
         print(
-            f"error: engines not implemented in v0.1.0: {', '.join(unsupported)}",
+            f"error: engines not implemented in v0.1.x: {', '.join(unsupported)}",
             file=sys.stderr,
         )
         return 2
@@ -126,7 +131,29 @@ def cmd_watch(
     print(f"engines loaded: {', '.join(requested)}")
     print(f"source: {source}  (Ctrl+C to stop)")
 
-    processed = 0
+    batch_size = (
+        int(engine_objs["filter"].config["top_k"]) if "filter" in engine_objs else 1
+    )
+    batch: List[np.ndarray] = []
+    stats = {"read": 0, "sampled": 0, "described": 0}
+
+    def run_batch(frames: List[np.ndarray]) -> None:
+        """Push one batch through filter -> encoder -> llm and print."""
+        if "filter" in engine_objs and len(frames) > 1:
+            frames = engine_objs["filter"].process(frames).data
+        visual_tokens = None
+        if "encoder" in engine_objs:
+            visual_tokens = engine_objs["encoder"].process(frames).data
+        if "llm" in engine_objs and visual_tokens is not None:
+            result = engine_objs["llm"].process({"visual_tokens": visual_tokens})
+            print(f"[{time.strftime('%H:%M:%S')}] {result.data}")
+        elif visual_tokens is not None:
+            print(
+                f"[{time.strftime('%H:%M:%S')}] encoded {len(frames)} frame(s) -> "
+                f"{visual_tokens.shape}"
+            )
+        stats["described"] += len(frames)
+
     try:
         with Camera(source) as cam:
             while True:
@@ -134,34 +161,37 @@ def cmd_watch(
                 if not ok:
                     time.sleep(0.05)
                     continue
+                stats["read"] += 1
 
-                # v0.1.0: process every frame (no sampling / filtering yet).
-                visual_tokens = None
-                if "encoder" in engine_objs:
-                    visual_tokens = engine_objs["encoder"].process([frame]).data
+                # Stage 1: sampling (skipped frames are dropped here).
+                if "sampler" in engine_objs:
+                    frame = engine_objs["sampler"].process(
+                        {"frame": frame, "timestamp": time.time()}
+                    ).data
+                    if frame is None:
+                        continue
+                stats["sampled"] += 1
 
-                if "llm" in engine_objs and visual_tokens is not None:
-                    result = engine_objs["llm"].process(
-                        {"visual_tokens": visual_tokens}
-                    )
-                    print(f"[{time.strftime('%H:%M:%S')}] {result.data}")
-                elif visual_tokens is not None:
-                    print(
-                        f"[{time.strftime('%H:%M:%S')}] encoded frame -> "
-                        f"{visual_tokens.shape}"
-                    )
+                batch.append(frame)
+                if len(batch) >= batch_size:
+                    run_batch(batch)
+                    batch = []
 
-                processed += 1
-                if max_frames and processed >= max_frames:
+                if max_frames and stats["described"] >= max_frames:
                     break
                 time.sleep(interval)
     except KeyboardInterrupt:
         print("\nstopped by user.")
     finally:
+        if batch:  # flush any leftover frames
+            run_batch(batch)
         for name in requested:
             manager.unload(name)
 
-    print(f"processed {processed} frame(s).")
+    print(
+        f"read {stats['read']} frame(s), sampled {stats['sampled']}, "
+        f"described {stats['described']}."
+    )
     return 0
 
 
