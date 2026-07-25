@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_(empty — see [0.2.0] planned features below)_
+### Added
+- VADEngine — audio pipeline Stage 1 (RMS-energy mock scorer, documented
+  state machine: trailing-silence segment end + max-duration cut)
 
 ---
 

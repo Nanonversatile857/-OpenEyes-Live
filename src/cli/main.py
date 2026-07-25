@@ -26,8 +26,9 @@ __version__ = "0.1.0"
 # Engines usable in the `watch` pipeline in v0.1.x.
 IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm", "memory"}
 
-# Engines implemented but launched via their own command (not the watch pipeline).
-STANDALONE_ENGINES = {"mcp"}
+# Engines implemented but launched via their own command or pipeline stage
+# (not yet wired into the watch pipeline).
+STANDALONE_ENGINES = {"mcp", "vad"}
 
 
 def build_parser() -> argparse.ArgumentParser:

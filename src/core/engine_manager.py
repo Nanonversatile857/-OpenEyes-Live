@@ -130,6 +130,10 @@ class EngineManager:
             from src.engines.core.mcp_gateway import MCPGateway
 
             return MCPGateway
+        if name == "vad":
+            from src.engines.audio.vad import VADEngine
+
+            return VADEngine
         if name in self._registry.get("engines", {}):
             raise EngineNotFoundError(
                 f"Engine '{name}' is registered but not implemented in v0.1.x"

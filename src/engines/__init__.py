@@ -2,11 +2,12 @@
 
 Source: docs/ENGINE_SPEC.md — "Engine Registration" section.
 
-v0.1.x implements the full video pipeline (``sampler``, ``filter``,
-``encoder``, ``compressor``) plus the core ``llm``, ``memory`` and ``mcp``
-engines; audio engines are reserved for v0.2.0.
+Implemented: the full video pipeline (``sampler``, ``filter``, ``encoder``,
+``compressor``), the core engines (``llm``, ``memory``, ``mcp``) and the
+first audio engine (``vad``). ``asr`` and ``speaker`` are planned.
 """
 
+from .audio.vad import VADEngine
 from .core.llm import LanguageEngine
 from .core.mcp_gateway import MCPGateway
 from .core.memory import MemoryEngine
@@ -23,4 +24,5 @@ __all__ = [
     "LanguageEngine",
     "MemoryEngine",
     "MCPGateway",
+    "VADEngine",
 ]
