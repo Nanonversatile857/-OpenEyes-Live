@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.3.0] - 2026-07-25
+
 ### Added
 - `openeyes install` now performs REAL model downloads: per-file manifests
   in `registry.yaml` (schema v2: `hf_repo` + `files` with expected byte
@@ -143,6 +147,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-> **Document Version:** v0.2.0
+> **Document Version:** v0.3.0
 > **Last Updated:** 2026-07-25
-> **Compatible with:** OpenEyes-Live v0.2.x
+> **Compatible with:** OpenEyes-Live v0.3.x

@@ -21,7 +21,7 @@ from src.core.engine_manager import EngineManager
 from src.core.errors import EngineError
 from src.runtime.camera import Camera
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 # Engines usable in the `watch` pipeline in v0.1.x.
 IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm", "memory"}

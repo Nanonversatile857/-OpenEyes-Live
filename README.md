@@ -12,7 +12,7 @@
 [![Min Engine](https://img.shields.io/badge/Min_Engine-2MB-green)](https://github.com/vfvincentwong2026/-OpenEyes-Live)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](https://github.com/vfvincentwong2026/-OpenEyes-Live)
 [![Download](https://img.shields.io/badge/Download-ModelScope-blue?logo=alibabacloud)](https://modelscope.cn/organization/OpenEyes-Live)
-[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](https://github.com/vfvincentwong2026/-OpenEyes-Live/releases)
+[![Version](https://img.shields.io/badge/Version-0.3.0-orange)](https://github.com/vfvincentwong2026/-OpenEyes-Live/releases)
 
 ---
 
@@ -295,7 +295,8 @@ Thermal throttling	Continuous high load	Reduce FPS to 5-10fps, remove phone case
 Version	Goal	Key Features
 v0.1.0	Video pipeline MVP	Video_encoder + LLM + Camera + CLI ✅
 v0.2.0	Real engines	Real CLIP / Phi-3.5-vision VLM / Silero VAD / SenseVoice ASR + `openeyes listen` ✅
-v0.3.0	Full multimodal	Video + Audio + Memory + Proactive Alerts + Speaker Recognition
+v0.3.0	Real model distribution	`openeyes install` real downloads (resume + hf-mirror fallback) ✅
+v0.4.0	Full multimodal	Video + Audio + Memory + Proactive Alerts + Speaker Recognition
 v1.0.0	Stable release	MCP full support + Cross-platform + App
 🤝 Contributing
 We especially welcome contributions from:

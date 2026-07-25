@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="openeyes-live",
-    version="0.2.0",
+    version="0.3.0",
     packages=find_packages(include=["src", "src.*"]),
     entry_points={
         "console_scripts": [
