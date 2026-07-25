@@ -17,6 +17,7 @@ setup(
         "onnxruntime>=1.17.0",
         "sherpa-onnx>=1.10.0",
         "sounddevice>=0.4.6",
+        "onnxruntime-genai>=0.11.0",
     ],
     python_requires=">=3.10",
 )

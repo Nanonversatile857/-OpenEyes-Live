@@ -166,15 +166,19 @@ def cmd_watch(
         """Push one batch through filter -> encoder -> compressor -> llm."""
         if "filter" in engine_objs and len(frames) > 1:
             frames = engine_objs["filter"].process(frames).data
+        # Camera frames are BGR; encoder and llm specs expect RGB.
+        rgb_frames = [f[:, :, ::-1] for f in frames]
+
         visual_tokens = None
         if "encoder" in engine_objs:
-            # Camera frames are BGR; the encoder spec expects RGB.
-            rgb_frames = [f[:, :, ::-1] for f in frames]
             visual_tokens = engine_objs["encoder"].process(rgb_frames).data
         if "compressor" in engine_objs and visual_tokens is not None:
             visual_tokens = engine_objs["compressor"].process(visual_tokens).data
-        if "llm" in engine_objs and visual_tokens is not None:
-            result = engine_objs["llm"].process({"visual_tokens": visual_tokens})
+
+        if "llm" in engine_objs:
+            # The VLM sees key frames directly (no trained token projector).
+            # One frame keeps latency sane on CPU (~0.4 t/s vision+text).
+            result = engine_objs["llm"].process({"frames": rgb_frames[:1]})
             print(f"[{time.strftime('%H:%M:%S')}] {result.data}")
             # Store the observation in long-term memory, if enabled.
             if "memory" in engine_objs:

@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `openeyes listen` — real-time microphone speech transcription (VAD + ASR)
 
 ### Changed
+- LanguageEngine — REPLACED mock with real Phi-3.5-vision-instruct VLM
+  (int4 ONNX, 3.2GB, onnxruntime-genai, offline): takes camera frames
+  directly and generates real scene descriptions. The visual_tokens input
+  path now raises a clear error (no trained CLIP->LLM projector exists).
+  watch passes one key frame per batch to keep CPU latency manageable
+  (~0.4 t/s on desktop CPU — a smaller VLM is planned)
 - VisualEncoderEngine — video pipeline Stage 3, REPLACED mock with real
   CLIP ViT-B/32 vision encoder (quantized ONNX, 89MB, onnxruntime, offline);
   L2-normalized 512-d embeddings, ~50ms/frame on desktop CPU. watch pipeline

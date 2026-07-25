@@ -5,6 +5,7 @@ Source: docs/VIDEO_PIPELINE.md — "Stage 4: Token Compressor Engine";
 """
 
 import unittest
+from pathlib import Path
 
 import numpy as np
 
@@ -95,11 +96,18 @@ class TestTokenCompressorEngine(unittest.TestCase):
         self.assertFalse(engine.is_loaded())
 
 
+@unittest.skipUnless(
+    Path("./models/encoder/clip-vit-b32/vision_model_quantized.onnx").exists(),
+    "CLIP vision model not downloaded",
+)
 class TestFullVideoPipeline(unittest.TestCase):
-    """sampler -> filter -> encoder -> compressor -> llm end-to-end."""
+    """sampler -> filter -> encoder -> compressor end-to-end.
+
+    The llm stage is a real VLM (3.2GB) with its own model-gated tests in
+    test_engine_llm.py, so this chain stops at the compressor.
+    """
 
     def test_full_chain(self) -> None:
-        from src.engines.core.llm import LanguageEngine
         from src.engines.video.encoder import VisualEncoderEngine
         from src.engines.video.filter import FrameFilterEngine
         from src.engines.video.sampler import FrameSamplerEngine
@@ -109,8 +117,7 @@ class TestFullVideoPipeline(unittest.TestCase):
         filt = FrameFilterEngine({"top_k": 4, "score_threshold": 0.0})
         encoder = VisualEncoderEngine({"embedding_dim": 512})
         compressor = TokenCompressorEngine({"target_tokens": 2, "method": "hybrid"})
-        llm = LanguageEngine()
-        for e in (sampler, filt, encoder, compressor, llm):
+        for e in (sampler, filt, encoder, compressor):
             e.load()
 
         frames = []
@@ -131,9 +138,8 @@ class TestFullVideoPipeline(unittest.TestCase):
         compressed = compressor.process(tokens).data
         self.assertEqual(compressed.shape, (2, 512))
 
-        answer = llm.process({"visual_tokens": compressed})
-        self.assertIsInstance(answer.data, str)
-        self.assertEqual(answer.metadata["num_visual_tokens"], 2)
+        for e in (sampler, filt, encoder, compressor):
+            e.unload()
 
 
 if __name__ == "__main__":

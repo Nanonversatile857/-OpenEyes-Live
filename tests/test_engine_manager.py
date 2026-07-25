@@ -47,15 +47,15 @@ class TestEngineManager(unittest.TestCase):
             self.manager.download("does_not_exist")
 
     def test_load_and_unload(self) -> None:
-        engine = self.manager.load("encoder")
+        engine = self.manager.load("sampler")
         self.assertTrue(engine.is_loaded())
-        self.assertTrue(self.manager.is_loaded("encoder"))
-        self.manager.unload("encoder")
-        self.assertFalse(self.manager.is_loaded("encoder"))
+        self.assertTrue(self.manager.is_loaded("sampler"))
+        self.manager.unload("sampler")
+        self.assertFalse(self.manager.is_loaded("sampler"))
 
     def test_load_idempotent(self) -> None:
-        first = self.manager.load("llm")
-        second = self.manager.load("llm")
+        first = self.manager.load("memory")
+        second = self.manager.load("memory")
         self.assertIs(first, second)
 
     def test_load_unimplemented_engine(self) -> None:
