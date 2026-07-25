@@ -24,7 +24,7 @@ from src.runtime.camera import Camera
 __version__ = "0.1.0"
 
 # Engines with a working implementation in v0.1.x.
-IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "llm"}
+IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm"}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -111,7 +111,7 @@ def cmd_watch(
     interval: float,
     max_frames: int,
 ) -> int:
-    """Run the watch loop: camera -> sampler -> filter -> encoder -> llm.
+    """Run the watch loop: camera -> sampler -> filter -> encoder -> compressor -> llm.
 
     Frames are accumulated into a batch (size = filter top_k, or 1 when no
     filter stage is used). Each full batch flows through the remaining stages
@@ -138,12 +138,14 @@ def cmd_watch(
     stats = {"read": 0, "sampled": 0, "described": 0}
 
     def run_batch(frames: List[np.ndarray]) -> None:
-        """Push one batch through filter -> encoder -> llm and print."""
+        """Push one batch through filter -> encoder -> compressor -> llm."""
         if "filter" in engine_objs and len(frames) > 1:
             frames = engine_objs["filter"].process(frames).data
         visual_tokens = None
         if "encoder" in engine_objs:
             visual_tokens = engine_objs["encoder"].process(frames).data
+        if "compressor" in engine_objs and visual_tokens is not None:
+            visual_tokens = engine_objs["compressor"].process(visual_tokens).data
         if "llm" in engine_objs and visual_tokens is not None:
             result = engine_objs["llm"].process({"visual_tokens": visual_tokens})
             print(f"[{time.strftime('%H:%M:%S')}] {result.data}")

@@ -16,10 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FrameSamplerEngine — Stage 1 (uniform / dynamic / keyframe_only, NumPy motion scoring)
 - FrameFilterEngine — Stage 2 (attention / diversity / hybrid selection, heuristic mock scorer)
 - VisualEncoderEngine — Stage 3 (mock embeddings, interface validated)
+- TokenCompressorEngine — Stage 4 (projection / selection / hybrid, mock projector)
 - LanguageEngine (mock responses, interface validated)
 - Camera runtime (local webcam + IP Webcam / RTSP)
 - CLI interface (`openeyes` command): `list`, `install`, `watch`, `--version`
-- 51 unit tests + real-camera smoke test of the full video pipeline
+- 63 unit tests + real-camera smoke test of the full video pipeline
 
 ### Documentation
 - README.md (EN + ZH-CN)
