@@ -17,11 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `openeyes listen` — real-time microphone speech transcription (VAD + ASR)
 
 ### Changed
+- VisualEncoderEngine — video pipeline Stage 3, REPLACED mock with real
+  CLIP ViT-B/32 vision encoder (quantized ONNX, 89MB, onnxruntime, offline);
+  L2-normalized 512-d embeddings, ~50ms/frame on desktop CPU. watch pipeline
+  now converts camera BGR frames to RGB per the engine spec
 - VADEngine — audio pipeline Stage 1, REPLACED mock with real Silero VAD
   (ONNX, 2MB, onnxruntime, fully offline); documented state machine unchanged
 - requirements.txt / setup.py: added onnxruntime, sherpa-onnx, sounddevice
 - Model-dependent tests skip automatically when models are not downloaded
-  (CI stays green without the ~236MB of model weights)
+  (CI stays green without the ~325MB of model weights)
 
 ---
 

@@ -168,7 +168,9 @@ def cmd_watch(
             frames = engine_objs["filter"].process(frames).data
         visual_tokens = None
         if "encoder" in engine_objs:
-            visual_tokens = engine_objs["encoder"].process(frames).data
+            # Camera frames are BGR; the encoder spec expects RGB.
+            rgb_frames = [f[:, :, ::-1] for f in frames]
+            visual_tokens = engine_objs["encoder"].process(rgb_frames).data
         if "compressor" in engine_objs and visual_tokens is not None:
             visual_tokens = engine_objs["compressor"].process(visual_tokens).data
         if "llm" in engine_objs and visual_tokens is not None:
