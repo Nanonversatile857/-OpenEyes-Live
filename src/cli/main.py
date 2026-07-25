@@ -24,7 +24,7 @@ from src.runtime.camera import Camera
 __version__ = "0.1.0"
 
 # Engines with a working implementation in v0.1.x.
-IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm"}
+IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm", "memory"}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -149,6 +149,12 @@ def cmd_watch(
         if "llm" in engine_objs and visual_tokens is not None:
             result = engine_objs["llm"].process({"visual_tokens": visual_tokens})
             print(f"[{time.strftime('%H:%M:%S')}] {result.data}")
+            # Store the observation in long-term memory, if enabled.
+            if "memory" in engine_objs:
+                engine_objs["memory"].store(
+                    result.data,
+                    metadata={"source": source, "num_frames": len(frames)},
+                )
         elif visual_tokens is not None:
             print(
                 f"[{time.strftime('%H:%M:%S')}] encoded {len(frames)} frame(s) -> "
