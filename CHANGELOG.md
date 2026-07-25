@@ -19,9 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TokenCompressorEngine — Stage 4 (projection / selection / hybrid, mock projector)
 - LanguageEngine (mock responses, interface validated)
 - MemoryEngine — vector memory with timeline (mock hash embeddings, JSON persistence)
+- MCPGateway — JSON-RPC 2.0 tool gateway (stdio transport; `openeyes mcp` with
+  ping / server_info / query_memory / capture_frame tools)
 - Camera runtime (local webcam + IP Webcam / RTSP)
-- CLI interface (`openeyes` command): `list`, `install`, `watch`, `--version`
-- 75 unit tests + real-camera smoke test of the full video pipeline
+- CLI interface (`openeyes` command): `list`, `install`, `watch`, `mcp`, `--version`
+- 90 unit tests + real-camera smoke test of the full video pipeline
 
 ### Documentation
 - README.md (EN + ZH-CN)

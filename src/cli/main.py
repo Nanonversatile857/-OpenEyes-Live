@@ -23,8 +23,11 @@ from src.runtime.camera import Camera
 
 __version__ = "0.1.0"
 
-# Engines with a working implementation in v0.1.x.
+# Engines usable in the `watch` pipeline in v0.1.x.
 IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm", "memory"}
+
+# Engines implemented but launched via their own command (not the watch pipeline).
+STANDALONE_ENGINES = {"mcp"}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -72,6 +75,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=0,
         help="Stop after N processed frames (default: 0 = run until Ctrl+C)",
     )
+
+    p_mcp = sub.add_parser("mcp", help="Start the MCP gateway (stdio JSON-RPC)")
+    p_mcp.add_argument(
+        "--source",
+        default="camera",
+        help="Camera source used by the 'capture_frame' tool",
+    )
+    p_mcp.add_argument(
+        "--port",
+        type=int,
+        default=3000,
+        help="Reserved for the future HTTP transport (default: 3000)",
+    )
     return parser
 
 
@@ -86,7 +102,7 @@ def cmd_list(manager: EngineManager) -> int:
             status = "loaded"
         elif manager.is_installed(name):
             status = "installed"
-        elif name in IMPLEMENTED_ENGINES:
+        elif name in IMPLEMENTED_ENGINES or name in STANDALONE_ENGINES:
             status = "available"
         else:
             status = "planned (v0.2.0+)"
@@ -203,6 +219,61 @@ def cmd_watch(
     return 0
 
 
+def cmd_mcp(manager: EngineManager, source: str, port: int) -> int:
+    """Start the MCP gateway as a stdio JSON-RPC server.
+
+    Built-in tools: ping, server_info. Additionally wires two OpenEyes tools:
+    ``query_memory`` (search the MemoryEngine) and ``capture_frame`` (grab one
+    frame from the camera source and report its shape).
+    """
+    gateway = manager.load("mcp", {"port": port})
+    memory = manager.load("memory")
+
+    def query_memory(args: dict) -> list:
+        result = memory.query(str(args.get("query", "")),
+                              limit=int(args.get("limit", 5)))
+        return [
+            {"description": r.description, "timestamp": r.timestamp,
+             "metadata": r.metadata, "score": r.score}
+            for r in result.data
+        ]
+
+    def capture_frame(_args: dict) -> dict:
+        with Camera(source) as cam:
+            ok, frame = cam.read()
+        if not ok:
+            raise EngineError(f"no frame from source {source!r}")
+        return {"source": source, "shape": list(frame.shape),
+                "captured_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
+
+    gateway.register_tool(
+        "query_memory", query_memory,
+        description="Search long-term visual memory.",
+        input_schema={"type": "object",
+                      "properties": {"query": {"type": "string"},
+                                     "limit": {"type": "integer"}},
+                      "required": ["query"]},
+    )
+    gateway.register_tool(
+        "capture_frame", capture_frame,
+        description="Capture one frame from the camera and report its shape.",
+        input_schema={"type": "object", "properties": {}},
+    )
+
+    tools = ", ".join(t.name for t in gateway.list_tools())
+    print(f"MCP gateway ready (stdio). tools: {tools}", file=sys.stderr)
+    print("waiting for JSON-RPC requests on stdin (one per line, Ctrl+C to stop)",
+          file=sys.stderr)
+    try:
+        gateway.serve_stdio()
+    except KeyboardInterrupt:
+        print("\nstopped by user.", file=sys.stderr)
+    finally:
+        manager.unload("mcp")
+        manager.unload("memory")
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """CLI entry point."""
     parser = build_parser()
@@ -218,6 +289,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             return cmd_watch(
                 manager, args.source, args.engines, args.interval, args.max_frames
             )
+        if args.command == "mcp":
+            return cmd_mcp(manager, args.source, args.port)
     except EngineError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
