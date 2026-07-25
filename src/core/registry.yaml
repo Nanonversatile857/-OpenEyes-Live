@@ -79,9 +79,16 @@ engines:
 
   speaker:
     name: "speaker"
-    version: "0.1.0"
-    size_mb: 30
-    source: "planned"  # v0.3.0+
+    version: "0.3.0"
+    size_mb: 38
+    source: "github"
+    files:
+      # sherpa-onnx speaker embedding model (3D-Speaker ERes2Net base,
+      # zh-cn, 16kHz) — hosted on GitHub releases; note the upstream tag
+      # is spelled "speaker-recongition-models" (sic).
+      - url: "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx"
+        local: "3dspeaker_eres2net_base_16k.onnx"
+        size: 39593761
 
   # Core Engines
   llm:

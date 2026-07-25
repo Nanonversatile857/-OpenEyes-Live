@@ -101,10 +101,12 @@ class TestEngineManager(unittest.TestCase):
         second = self.manager.load("memory")
         self.assertIs(first, second)
 
-    def test_load_unimplemented_engine(self) -> None:
-        # Registered in registry.yaml but not implemented yet.
-        with self.assertRaises(EngineNotFoundError):
-            self.manager.load("speaker")
+    def test_all_registry_engines_have_implementations(self) -> None:
+        # Every registry entry must resolve to an engine class (speaker
+        # landed in v0.3.0; there are no planned-only entries left).
+        for name in self.manager.list_engines():
+            cls = self.manager._resolve_engine_class(name)
+            self.assertTrue(callable(cls), name)
 
     def test_unload_idempotent(self) -> None:
         self.manager.unload("encoder")  # never loaded — must not raise
@@ -215,9 +217,32 @@ class TestEngineDownload(unittest.TestCase):
         with self.assertRaises(EngineDownloadError):
             self.manager.download("vad", mirror="modelscope")
 
-    def test_download_planned_engine_raises(self) -> None:
-        with self.assertRaises(EngineDownloadError):
-            self.manager.download("speaker")
+    def test_download_direct_url_ignores_mirrors(self) -> None:
+        # speaker uses an absolute GitHub release URL — mirror sources only
+        # apply to hf_repo files, so urlopen must be called exactly once
+        # with the registry URL even when huggingface is "down".
+        engine_dir_url = (
+            "https://github.com/k2-fsa/sherpa-onnx/releases/download/"
+            "speaker-recongition-models/"
+            "3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx"
+        )
+        data = b"\x00" * 39593761
+        calls = []
+
+        def fake_urlopen(request, timeout=0):  # noqa: ARG001
+            calls.append(request.full_url)
+            return _FakeResponse(data)
+
+        with mock.patch(
+            "src.core.engine_manager.urllib.request.urlopen",
+            side_effect=fake_urlopen,
+        ):
+            path = self.manager.download("speaker", mirror="hf-mirror")
+
+        self.assertEqual(calls, [engine_dir_url])
+        self.assertTrue(self.manager.is_installed("speaker"))
+        dest = Path(path) / "3dspeaker_eres2net_base_16k.onnx"
+        self.assertEqual(dest.stat().st_size, 39593761)
 
     def test_is_installed_false_without_marker(self) -> None:
         self.assertFalse(self.manager.is_installed("vad"))

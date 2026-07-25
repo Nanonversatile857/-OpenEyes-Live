@@ -118,7 +118,8 @@ class EngineManager:
             return engine_dir
 
         repo = info.get("hf_repo")
-        if not repo:
+        needs_repo = any("url" not in entry for entry in files)
+        if needs_repo and not repo:
             raise EngineDownloadError(
                 f"Engine '{name}' declares files but no hf_repo in registry"
             )
@@ -163,13 +164,25 @@ class EngineManager:
     def _fetch_file(
         self,
         engine: str,
-        repo: str,
+        repo: Optional[str],
         entry: Dict[str, Any],
         dest: Path,
         mirror: Optional[str],
         progress: Optional[ProgressCallback],
     ) -> str:
-        """Fetch one file, trying each source in turn. Returns source used."""
+        """Fetch one file, trying each source in turn. Returns source used.
+
+        Entries with an absolute ``url`` (e.g. GitHub release assets) are
+        fetched directly — mirror sources only apply to ``hf_repo`` files.
+        """
+        if "url" in entry:
+            self._stream_to_disk(
+                engine, entry["url"], dest,
+                expected_size=int(entry.get("size") or 0),
+                progress=progress,
+            )
+            return "direct"
+
         last_error: Optional[Exception] = None
         for source_name, base in self._source_bases(mirror):
             url = f"{base}/{repo}/resolve/main/{entry['remote']}"
@@ -324,6 +337,10 @@ class EngineManager:
             from src.engines.audio.asr import ASREngine
 
             return ASREngine
+        if name == "speaker":
+            from src.engines.audio.speaker import SpeakerEngine
+
+            return SpeakerEngine
         if name in self._registry.get("engines", {}):
             raise EngineNotFoundError(
                 f"Engine '{name}' is registered but not implemented in v0.2.x"

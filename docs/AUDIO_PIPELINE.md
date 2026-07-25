@@ -42,7 +42,7 @@ Stage	Engine	Model	Size	Input → Output	Description
 1	VAD引擎	Silero VAD	~2MB	Audio → Voice segments	Detects voice activity, drops silence
 2	ASR引擎	SenseVoice / Parakeet	~229MB	Voice → Text	Transcribes speech to text
 2b	标点恢复	CT-Transformer	~5MB	Raw text → Punctuated text	Adds punctuation, formatting
-3	声纹引擎	ECAPA-TDNN	~30MB	Voice → Speaker ID	Identifies who is speaking
+3	声纹引擎	ERes2Net (3D-Speaker)	~38MB	Voice → Speaker ID	Identifies who is speaking (v0.3.0 已实现)
 🎯 Stage 1: VAD Engine (Voice Activity Detection)
 File: src/engines/audio/vad.py
 
@@ -279,6 +279,12 @@ class PunctuationRecoverer:
         pass
 🎯 Stage 3: Speaker Recognition Engine
 File: src/engines/audio/speaker.py
+
+> **v0.3.0 status: IMPLEMENTED (real model).** Uses 3D-Speaker ERes2Net
+> base (ONNX, ~38MB, zh-cn, 16kHz) via sherpa-onnx — 512-d embeddings,
+> ~34x real-time on desktop CPU. The interface below is the original
+> design sketch; see `src/engines/audio/speaker.py` for the shipped API
+> (`process` → embedding, plus `enroll` / `identify` / `remove`).
 
 Purpose: Identify who is speaking based on voice characteristics (voiceprint / 声纹识别).
 

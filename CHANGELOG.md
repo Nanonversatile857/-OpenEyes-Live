@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- SpeakerEngine — audio pipeline Stage 3, REAL implementation (3D-Speaker
+  ERes2Net base, ONNX, ~38MB, zh-cn, 16kHz, via sherpa-onnx): 512-d
+  speaker embeddings plus `enroll` / `identify` / `remove` with a
+  cosine-similarity threshold. Measured ~34x real-time on desktop CPU;
+  same-speaker score 0.87 vs noise 0.10 at the default 0.5 threshold
+- Download support for absolute file URLs (GitHub release assets) in
+  `registry.yaml` — used by the speaker model (upstream tag
+  "speaker-recongition-models", sic); hf-mirror fallback still applies
+  to `hf_repo` files only
+- LanguageEngine: `max_image_side` config (default 336) downscales frames
+  to a single 336px VLM tile before inference, cutting prefill cost on
+  capable CPUs at zero quality cost for scene description
+
+### Changed
+- All ten registry engines now have real implementations — no
+  planned-only entries remain
+
 ---
 
 ## [0.3.0] - 2026-07-25

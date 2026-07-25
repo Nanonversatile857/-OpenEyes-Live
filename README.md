@@ -205,6 +205,7 @@ openeyes install encoder            # ~89MB  (CLIP ViT-B/32, quantized ONNX)
 openeyes install llm                # ~3.3GB (Phi-3.5-vision int4)
 openeyes install vad                # ~2MB   (Silero VAD)
 openeyes install asr                # ~234MB (SenseVoice int8)
+openeyes install speaker            # ~38MB  (3D-Speaker ERes2Net, GitHub release)
 
 # Start with video only (base configuration)
 openeyes watch --source camera --engines encoder+llm

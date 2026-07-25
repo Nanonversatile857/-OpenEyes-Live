@@ -28,7 +28,7 @@ IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm", "mem
 
 # Engines implemented but launched via their own command or pipeline stage
 # (not wired into the watch pipeline).
-STANDALONE_ENGINES = {"mcp", "vad", "asr"}
+STANDALONE_ENGINES = {"mcp", "vad", "asr", "speaker"}
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -546,9 +546,15 @@ engines:
 
   speaker:
     name: "speaker"
-    version: "0.1.0"
-    size_mb: 30
-    source: "planned"  # v0.3.0+
+    version: "0.3.0"
+    size_mb: 38
+    source: "github"
+    files:
+      # GitHub release asset — absolute URL (upstream tag spelled
+      # "speaker-recongition-models", sic); mirrors don't apply.
+      - url: "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx"
+        local: "3dspeaker_eres2net_base_16k.onnx"
+        size: 39593761
 ❌ Error Handling
 All engines must use standardized error codes:
 

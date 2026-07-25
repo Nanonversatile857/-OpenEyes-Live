@@ -53,6 +53,33 @@ class TestLanguageEngineInterface(unittest.TestCase):
         engine = LanguageEngine()
         engine.unload()
 
+    def test_downscale_keeps_small_frames(self) -> None:
+        frame = _frame()  # 240x320 — already under 336
+        out = LanguageEngine._downscale(frame, 336, _FakeCv2)
+        self.assertIs(out, frame)
+
+    def test_downscale_disabled_with_zero(self) -> None:
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        out = LanguageEngine._downscale(frame, 0, _FakeCv2)
+        self.assertIs(out, frame)
+
+    def test_downscale_preserves_aspect(self) -> None:
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        out = LanguageEngine._downscale(frame, 336, _FakeCv2)
+        self.assertEqual(_FakeCv2.last_size, (336, 252))  # (w, h), 4:3 kept
+
+
+class _FakeCv2:
+    """Stand-in for the cv2 module inside _downscale (no real resize)."""
+
+    INTER_AREA = 3
+    last_size = None
+
+    @staticmethod
+    def resize(frame, size, interpolation=0):  # noqa: ARG004
+        _FakeCv2.last_size = size
+        return np.zeros((size[1], size[0], 3), dtype=np.uint8)
+
 
 @unittest.skipUnless(HAS_MODEL, "Phi-3.5-vision model not downloaded")
 class TestLanguageEngineReal(unittest.TestCase):
