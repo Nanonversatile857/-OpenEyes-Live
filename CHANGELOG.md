@@ -9,7 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_(empty — see [0.2.0] planned features below)_
+
+---
+
+## [0.1.0] - 2026-07-25
+
 ### Added
+- 🎉 Initial release — pluggable engine architecture with the full video pipeline skeleton
 - Initial project scaffolding
 - BaseEngine interface, error codes and engine registry (`registry.yaml`)
 - Engine lifecycle management (download/load/unload), mock download
@@ -23,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ping / server_info / query_memory / capture_frame tools)
 - Camera runtime (local webcam + IP Webcam / RTSP)
 - CLI interface (`openeyes` command): `list`, `install`, `watch`, `mcp`, `--version`
+- GitHub Actions CI (ubuntu/windows × Python 3.10–3.12, 90 unit tests + CLI smoke)
 - 90 unit tests + real-camera smoke test of the full video pipeline
 
 ### Documentation
@@ -36,27 +44,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API_REFERENCE.md
 - CHANGELOG.md
 
----
-
-## [0.1.0] - 2026-07-25
-
-### Added
-- 🎉 Initial release
-- Base Vision Engine with SmolVLM2-256M
-- Camera input support (local, IP Webcam, USB)
-- CLI commands: `list`, `install`, `watch`, `mcp`
-- Motion detection trigger (frame delta)
-- 5 independent pluggable engines
-- On-demand download from Hugging Face + ModelScope
-- MCP Gateway with JSON-RPC tools
-- Tested compatibility: Xiaomi 6, iPhone 8, Redmi Note 5, Raspberry Pi 4
-- Multi-platform support: Linux, macOS, Android (Termux)
-
 ### Known Issues
-- iOS camera support requires additional testing
-- Termux mode is in technical preview
-- Voice engine may cause OOM on devices with <4GB RAM
-- Thermal throttling observed on Apple A11 devices after 30+ minutes
+- All engines are mock implementations (random embeddings / fixed text) — real
+  model weights arrive in v0.2.0
+- Engine download is a mock: it creates the cache directory without network fetch
+- Audio pipeline (vad / asr / speaker) not implemented yet
+- MCP gateway serves stdio only; HTTP/WebSocket transport planned for v0.2.0
 
 ---
 
