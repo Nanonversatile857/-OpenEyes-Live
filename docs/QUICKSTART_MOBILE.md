@@ -123,5 +123,5 @@ Camera not opening	termux-setup-storage and restart
 IP Webcam connection failed	Check IP address, same WiFi?
 Slow inference (< 3 t/s)	Use fewer engines, e.g., encoder+llm only
 OOM crash	Single pipeline only: video OR audio
-Model download slow (China)	Use --mirror=modelscope
+Model download slow (China)	Use --mirror=hf-mirror
 Thermal throttling	Reduce FPS to 5-10, remove phone case

@@ -1,92 +1,138 @@
 # Engine Registry
-# All engines and their download URLs
+# All engines and their model download manifests.
 # Source: docs/ENGINE_SPEC.md — "Engine Registry Format" section.
+#
+# Schema v2 (v0.3.0): model engines declare `hf_repo` + a `files` list.
+# Each file records its remote path inside the HF repo, the local path
+# under models/<engine>/, and the expected byte size (used as the
+# integrity check — these files have no published sha256).
+# Engines with `source: internal` are pure code and need no download.
 
 registry:
-  version: "1.0"
-  primary: "https://huggingface.co/OpenEyes-Live/engines"
-  mirror: "https://modelscope.cn/OpenEyes-Live/engines"
+  version: "2.0"
+  # Download sources, tried in order unless --mirror pins one.
+  sources:
+    huggingface: "https://huggingface.co"
+    hf-mirror: "https://hf-mirror.com"
+  default_source: "huggingface"
+  fallback_source: "hf-mirror"
 
 engines:
   # Video Pipeline
   sampler:
     name: "sampler"
     version: "0.1.0"
-    file: "sampler.zip"
     size_mb: 5
-    checksum: "sha256:abc123..."
     source: "internal"
 
   filter:
     name: "filter"
     version: "0.1.0"
-    file: "filter.ort"
     size_mb: 15
-    checksum: "sha256:def456..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    source: "internal"
 
   encoder:
     name: "encoder"
-    version: "0.1.0"
-    file: "videomamba_t-q4.gguf"
-    size_mb: 200
-    checksum: "sha256:ghi789..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    version: "0.2.0"
+    size_mb: 89
+    source: "huggingface"
+    hf_repo: "Xenova/clip-vit-base-patch32"
+    files:
+      - remote: "onnx/vision_model_quantized.onnx"
+        local: "clip-vit-b32/vision_model_quantized.onnx"
+        size: 89117001
+      - remote: "preprocessor_config.json"
+        local: "clip-vit-b32/preprocessor_config.json"
+        size: 520
 
   compressor:
     name: "compressor"
     version: "0.1.0"
-    file: "compressor.pt"
     size_mb: 20
-    checksum: "sha256:jkl012..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    source: "internal"
 
   # Audio Pipeline
   vad:
     name: "vad"
-    version: "0.1.0"
-    file: "silero_vad.onnx"
+    version: "0.2.0"
     size_mb: 2
-    checksum: "sha256:mno345..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    source: "huggingface"
+    hf_repo: "onnx-community/silero-vad"
+    files:
+      - remote: "onnx/model.onnx"
+        local: "silero_vad.onnx"
+        size: 2243022
 
   asr:
     name: "asr"
-    version: "0.1.0"
-    file: "sense_voice_int8.onnx"
+    version: "0.2.0"
     size_mb: 234
-    checksum: "sha256:pqr678..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    source: "huggingface"
+    hf_repo: "csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17"
+    files:
+      - remote: "model.int8.onnx"
+        local: "sense-voice/model.int8.onnx"
+        size: 239233841
+      - remote: "tokens.txt"
+        local: "sense-voice/tokens.txt"
+        size: 315894
 
   speaker:
     name: "speaker"
     version: "0.1.0"
-    file: "eres2net.onnx"
     size_mb: 30
-    checksum: "sha256:stu901..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    source: "planned"  # v0.3.0+
 
   # Core Engines
   llm:
     name: "llm"
-    version: "0.1.0"
-    file: "qwen2.5-2b-q4.gguf"
-    size_mb: 400
-    checksum: "sha256:vwx234..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    version: "0.2.0"
+    size_mb: 3300
+    source: "huggingface"
+    hf_repo: "microsoft/Phi-3.5-vision-instruct-onnx"
+    files:
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/genai_config.json"
+        local: "phi-3.5-vision-int4/genai_config.json"
+        size: 2121
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/phi-3.5-v-instruct-embedding.onnx"
+        local: "phi-3.5-vision-int4/phi-3.5-v-instruct-embedding.onnx"
+        size: 6091
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/phi-3.5-v-instruct-embedding.onnx.data"
+        local: "phi-3.5-vision-int4/phi-3.5-v-instruct-embedding.onnx.data"
+        size: 394002432
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/phi-3.5-v-instruct-text.onnx"
+        local: "phi-3.5-vision-int4/phi-3.5-v-instruct-text.onnx"
+        size: 52123846
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/phi-3.5-v-instruct-text.onnx.data"
+        local: "phi-3.5-vision-int4/phi-3.5-v-instruct-text.onnx.data"
+        size: 2327285760
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/phi-3.5-v-instruct-vision.onnx"
+        local: "phi-3.5-vision-int4/phi-3.5-v-instruct-vision.onnx"
+        size: 414021
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/phi-3.5-v-instruct-vision.onnx.data"
+        local: "phi-3.5-vision-int4/phi-3.5-v-instruct-vision.onnx.data"
+        size: 444916232
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/processor_config.json"
+        local: "phi-3.5-vision-int4/processor_config.json"
+        size: 752
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/special_tokens_map.json"
+        local: "phi-3.5-vision-int4/special_tokens_map.json"
+        size: 670
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/tokenizer.json"
+        local: "phi-3.5-vision-int4/tokenizer.json"
+        size: 1851388
+      - remote: "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/tokenizer_config.json"
+        local: "phi-3.5-vision-int4/tokenizer_config.json"
+        size: 9547
 
   memory:
     name: "memory"
     version: "0.1.0"
-    file: "memory.db"
     size_mb: 50
-    checksum: "sha256:yza567..."
     source: "internal"
 
   mcp:
     name: "mcp"
     version: "0.1.0"
-    file: "mcp_gateway.py"
     size_mb: 10
-    checksum: "sha256:bcd890..."
     source: "internal"

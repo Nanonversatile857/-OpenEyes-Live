@@ -72,7 +72,7 @@ class VADEngine(BaseEngine):
     def metadata(self) -> EngineMetadata:
         return EngineMetadata(
             name="vad",
-            version="0.1.0",
+            version="0.2.0",
             description="Voice Activity Detection (Silero VAD, ONNX, offline).",
             author="OpenEyes-Live",
             input_type="audio_pcm",

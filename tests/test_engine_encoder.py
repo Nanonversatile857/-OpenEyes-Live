@@ -31,7 +31,7 @@ class TestVisualEncoderInterface(unittest.TestCase):
         engine = VisualEncoderEngine()
         meta = engine.metadata
         self.assertEqual(meta.name, "encoder")
-        self.assertEqual(meta.version, "0.1.0")
+        self.assertEqual(meta.version, "0.2.0")
         self.assertEqual(meta.input_type, "frames_rgb")
         self.assertEqual(meta.output_type, "visual_embeddings")
         self.assertIn("video", meta.tags)

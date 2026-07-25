@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `openeyes install` now performs REAL model downloads: per-file manifests
+  in `registry.yaml` (schema v2: `hf_repo` + `files` with expected byte
+  sizes), HTTP Range resume for interrupted downloads, byte-size
+  verification, automatic huggingface → hf-mirror fallback, `--mirror`
+  to pin a source, and a live progress display
+- Download tests with a mocked network layer (resume, fallback, size
+  mismatch, unknown mirror, planned engine)
+
+### Changed
+- `EngineManager.is_installed()` verifies actual model files (path + size)
+  instead of only the marker file, so manually fetched models count too
+- Registry/engine versions of the real engines (vad, asr, encoder, llm)
+  bumped to 0.2.0 to match their model manifests
+- Docs: ENGINE_SPEC registry format updated to schema v2; README and
+  QUICKSTART_MOBILE now reference `--mirror=hf-mirror` (was modelscope)
+
 ---
 
 ## [0.2.0] - 2026-07-25

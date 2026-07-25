@@ -22,12 +22,13 @@ class TestCli(unittest.TestCase):
             self.assertIn(name, out)
         self.assertIn(__version__, out)
 
-    def test_install_mock(self) -> None:
+    def test_install_internal_engine(self) -> None:
+        # Internal engines need no model files — no network access involved.
         buf = io.StringIO()
         with redirect_stdout(buf):
-            rc = main(["install", "encoder"])
+            rc = main(["install", "sampler"])
         self.assertEqual(rc, 0)
-        self.assertIn("encoder", buf.getvalue())
+        self.assertIn("sampler", buf.getvalue())
 
     def test_install_unknown_engine(self) -> None:
         with redirect_stdout(io.StringIO()):

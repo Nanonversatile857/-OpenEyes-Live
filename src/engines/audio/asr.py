@@ -62,7 +62,7 @@ class ASREngine(BaseEngine):
         size = self._SIZES.get(str(self.config["model_name"]), 229) + 5
         return EngineMetadata(
             name="asr",
-            version="0.1.0",
+            version="0.2.0",
             description="Speech-to-Text with punctuation (SenseVoice, sherpa-onnx, offline).",
             author="OpenEyes-Live",
             input_type="audio_pcm_voice",

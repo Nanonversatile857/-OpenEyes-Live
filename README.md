@@ -200,19 +200,17 @@ bash
 # List all available sub-engines
 openeyes list
 
-# Download a specific sub-engine (auto-downloads on first use)
-openeyes install video_encoder      # ~200MB
-openeyes install vad                # ~2MB
-openeyes install asr                # ~150MB
+# Download engine models (real download, resumable, hf-mirror fallback)
+openeyes install encoder            # ~89MB  (CLIP ViT-B/32, quantized ONNX)
+openeyes install llm                # ~3.3GB (Phi-3.5-vision int4)
+openeyes install vad                # ~2MB   (Silero VAD)
+openeyes install asr                # ~234MB (SenseVoice int8)
 
 # Start with video only (base configuration)
-openeyes watch --source camera --engines video_encoder+llm
+openeyes watch --source camera --engines encoder+llm
 
-# Start with video + audio (full multimodal)
-openeyes watch --source camera --audio --engines video_encoder+vad+asr+llm
-
-# Enable proactive alert mode
-openeyes watch --source camera --audio --mode proactive --alert "water|fire|intruder"
+# Transcribe microphone speech in real time (VAD + ASR)
+openeyes listen
 
 # Start MCP Server (for Claude, Cursor, etc.)
 openeyes mcp --port 3000
@@ -291,7 +289,7 @@ Camera not opening	Termux permission not granted	Run termux-setup-storage and re
 IP Webcam connection failed	Not on same WiFi	Check IP address, ping the device
 Slow inference (< 3 t/s)	Device too old / too many engines loaded	Use fewer engines, e.g., video_encoder+llm only
 OOM / App crashes	Insufficient RAM	Single pipeline only: video OR audio, not both
-Model download slow / fails	Network issues (China)	Use --mirror=modelscope flag
+Model download slow / fails	Network issues (China)	Use --mirror=hf-mirror flag
 Thermal throttling	Continuous high load	Reduce FPS to 5-10fps, remove phone case
 🗺️ Roadmap
 Version	Goal	Key Features

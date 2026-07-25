@@ -65,7 +65,7 @@ class LanguageEngine(BaseEngine):
     def metadata(self) -> EngineMetadata:
         return EngineMetadata(
             name="llm",
-            version="0.1.0",
+            version="0.2.0",
             description="Multi-modal language reasoning (Phi-3.5-vision int4, offline).",
             author="OpenEyes-Live",
             input_type="multi_modal_features",

@@ -3,13 +3,17 @@
 Source: docs/ENGINE_SPEC.md — "Engine Lifecycle" section;
         docs/API_REFERENCE.md — "EngineManager" section.
 
-v0.1.0 scope: ``download()`` is a mock implementation — it does not fetch
-any model files over the network, it only creates the engine cache
-directory. Real downloading arrives in a later release.
+v0.3.0: ``download()`` fetches real model files from Hugging Face (with
+hf-mirror.com fallback for networks where huggingface.co is unreachable),
+supports resuming interrupted downloads, and verifies each file against
+the byte size declared in ``registry.yaml``.
 """
 
+import time
+import urllib.error
+import urllib.request
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type
 
 import yaml
 
@@ -21,6 +25,13 @@ from src.core.errors import (
 )
 
 _REGISTRY_PATH = Path(__file__).parent / "registry.yaml"
+
+_CHUNK_SIZE = 1 << 20  # 1 MiB
+_CONNECT_TIMEOUT = 15  # seconds
+_PROGRESS_INTERVAL = 0.5  # seconds between progress callbacks
+
+#: Signature: (engine_name, file_local_path, downloaded_bytes, total_bytes)
+ProgressCallback = Callable[[str, str, int, int], None]
 
 
 class EngineManager:
@@ -55,21 +66,35 @@ class EngineManager:
             raise EngineNotFoundError(f"Engine '{name}' not found in registry")
         return engines[name]
 
-    # === Download (mock in v0.1.0) ===
+    # === Download ===
 
-    def download(self, name: str, mirror: Optional[str] = None) -> Path:
+    def download(
+        self,
+        name: str,
+        mirror: Optional[str] = None,
+        progress: Optional[ProgressCallback] = None,
+    ) -> Path:
         """Download an engine's model files.
 
-        v0.1.0: mock implementation — creates the cache directory only,
-        no network access.
+        Internal (pure-code) engines need no files: this only creates the
+        cache directory and marker. Model engines fetch every file declared
+        in the registry, resuming partial downloads and verifying byte
+        sizes. When ``mirror`` is not given, the default source is tried
+        first and the fallback source (hf-mirror) is used if it fails.
 
         Args:
             name: Engine name from the registry.
-            mirror: Optional mirror name (e.g. ``modelscope``). Recorded but
-                not used by the mock implementation.
+            mirror: Optional source name pinning a single download source
+                (e.g. ``hf-mirror``); see ``registry.sources``.
+            progress: Optional callback
+                ``(engine, file, downloaded_bytes, total_bytes)``.
 
         Returns:
             Path to the engine's cache directory.
+
+        Raises:
+            EngineNotFoundError: Unknown engine name.
+            EngineDownloadError: A file could not be fetched or verified.
         """
         info = self.engine_info(name)  # raises EngineNotFoundError if unknown
 
@@ -77,30 +102,191 @@ class EngineManager:
         try:
             engine_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            raise EngineDownloadError(f"Failed to create cache dir for '{name}': {exc}") from exc
+            raise EngineDownloadError(
+                f"Failed to create cache dir for '{name}': {exc}"
+            ) from exc
 
-        # Mock: a real implementation would fetch `info["file"]` from
-        # `info["source"]` (or the mirror) and verify `info["checksum"]`.
-        marker = engine_dir / ".downloaded"
-        marker.write_text(
-            f"name={info['name']}\nversion={info['version']}\n"
-            f"file={info['file']}\nmirror={mirror or 'primary'}\nmock=true\n",
-            encoding="utf-8",
+        if info.get("source") == "planned":
+            raise EngineDownloadError(
+                f"Engine '{name}' is planned but has no published model yet"
+            )
+
+        files: List[Dict[str, Any]] = info.get("files") or []
+        if not files:
+            # Internal engine — pure code, nothing to fetch.
+            self._write_marker(engine_dir, info, mirror=mirror, real=True)
+            return engine_dir
+
+        repo = info.get("hf_repo")
+        if not repo:
+            raise EngineDownloadError(
+                f"Engine '{name}' declares files but no hf_repo in registry"
+            )
+
+        used_source: Optional[str] = None
+        for entry in files:
+            dest = engine_dir / entry["local"]
+            expected = int(entry.get("size") or 0)
+            if expected and dest.exists() and dest.stat().st_size == expected:
+                continue  # already complete
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            used_source = self._fetch_file(
+                name, repo, entry, dest, mirror=mirror, progress=progress
+            )
+
+        self._write_marker(
+            engine_dir, info, mirror=used_source or mirror, real=True
         )
         return engine_dir
 
+    def _source_bases(self, mirror: Optional[str]) -> List[tuple]:
+        """Ordered (name, base_url) download sources to try."""
+        reg = self._registry.get("registry", {})
+        sources: Dict[str, str] = reg.get("sources") or {}
+        if mirror:
+            if mirror not in sources:
+                raise EngineDownloadError(
+                    f"Unknown mirror '{mirror}'; available: "
+                    f"{', '.join(sorted(sources))}"
+                )
+            return [(mirror, sources[mirror])]
+        ordered = [
+            (reg.get("default_source"), None),
+            (reg.get("fallback_source"), None),
+        ]
+        return [
+            (name, sources[name])
+            for name, _ in ordered
+            if name and name in sources
+        ]
+
+    def _fetch_file(
+        self,
+        engine: str,
+        repo: str,
+        entry: Dict[str, Any],
+        dest: Path,
+        mirror: Optional[str],
+        progress: Optional[ProgressCallback],
+    ) -> str:
+        """Fetch one file, trying each source in turn. Returns source used."""
+        last_error: Optional[Exception] = None
+        for source_name, base in self._source_bases(mirror):
+            url = f"{base}/{repo}/resolve/main/{entry['remote']}"
+            try:
+                self._stream_to_disk(
+                    engine, url, dest,
+                    expected_size=int(entry.get("size") or 0),
+                    progress=progress,
+                )
+                return source_name
+            except (urllib.error.URLError, OSError, TimeoutError) as exc:
+                last_error = exc
+                continue  # try the next source
+        raise EngineDownloadError(
+            f"Failed to download '{entry['remote']}' for engine "
+            f"'{engine}': {last_error}"
+        ) from last_error
+
+    @staticmethod
+    def _stream_to_disk(
+        engine: str,
+        url: str,
+        dest: Path,
+        expected_size: int,
+        progress: Optional[ProgressCallback],
+    ) -> None:
+        """Stream one URL to ``dest`` with resume support and size check.
+
+        Interrupted downloads leave a ``<name>.part`` file; the next call
+        resumes it with an HTTP Range request.
+        """
+        part = dest.with_name(dest.name + ".part")
+        offset = part.stat().st_size if part.exists() else 0
+        if expected_size and offset > expected_size:
+            part.unlink()  # stale/garbage partial file
+            offset = 0
+
+        headers = {"User-Agent": "openeyes-live"}
+        if offset:
+            headers["Range"] = f"bytes={offset}-"
+        request = urllib.request.Request(url, headers=headers)
+
+        with urllib.request.urlopen(request, timeout=_CONNECT_TIMEOUT) as resp:
+            # A server ignoring Range returns 200 — restart from scratch.
+            if offset and resp.status == 200:
+                offset = 0
+            mode = "ab" if offset else "wb"
+            downloaded = offset
+            last_report = 0.0
+            with open(part, mode) as fh:
+                while True:
+                    chunk = resp.read(_CHUNK_SIZE)
+                    if not chunk:
+                        break
+                    fh.write(chunk)
+                    downloaded += len(chunk)
+                    now = time.monotonic()
+                    if progress and now - last_report >= _PROGRESS_INTERVAL:
+                        last_report = now
+                        progress(engine, dest.name, downloaded, expected_size)
+
+        if expected_size and downloaded != expected_size:
+            raise EngineDownloadError(
+                f"Size mismatch for {dest.name}: got {downloaded} bytes, "
+                f"expected {expected_size} (partial file kept at {part})"
+            )
+        part.replace(dest)
+        if progress:
+            progress(engine, dest.name, downloaded, expected_size)
+
+    def _write_marker(
+        self,
+        engine_dir: Path,
+        info: Dict[str, Any],
+        mirror: Optional[str],
+        real: bool,
+    ) -> None:
+        marker = engine_dir / ".downloaded"
+        marker.write_text(
+            f"name={info['name']}\nversion={info['version']}\n"
+            f"source={mirror or 'internal'}\nreal={str(real).lower()}\n",
+            encoding="utf-8",
+        )
+
     def is_installed(self, name: str) -> bool:
-        """Check whether an engine has been downloaded (cache dir exists)."""
-        return (self.cache_dir / name / ".downloaded").exists()
+        """Check whether an engine's files are fully downloaded.
+
+        Model engines are installed when every declared file exists with
+        the expected size — regardless of the marker, so manually fetched
+        models count too. Internal engines only need the marker.
+        """
+        try:
+            info = self.engine_info(name)
+        except EngineNotFoundError:
+            return False
+        engine_dir = self.cache_dir / name
+        files = info.get("files") or []
+        if not files:
+            return (engine_dir / ".downloaded").exists()
+        for entry in files:
+            dest = engine_dir / entry["local"]
+            expected = int(entry.get("size") or 0)
+            if not dest.exists():
+                return False
+            if expected and dest.stat().st_size != expected:
+                return False
+        return True
 
     # === Load / Unload ===
 
     def _resolve_engine_class(self, name: str) -> Type[BaseEngine]:
         """Map a registry name to an engine class.
 
-        v0.1.x implements the full video pipeline (``sampler``, ``filter``,
-        ``encoder``, ``compressor``) plus ``llm`` and ``memory``; other
-        registry entries raise EngineNotFoundError (planned for v0.2.0+).
+        v0.2.x implements the full video pipeline (``sampler``, ``filter``,
+        ``encoder``, ``compressor``), the audio pipeline front-end
+        (``vad``, ``asr``) plus ``llm``, ``memory`` and ``mcp``; other
+        registry entries raise EngineNotFoundError (planned for v0.3.0+).
         """
         if name == "sampler":
             from src.engines.video.sampler import FrameSamplerEngine
@@ -140,7 +326,7 @@ class EngineManager:
             return ASREngine
         if name in self._registry.get("engines", {}):
             raise EngineNotFoundError(
-                f"Engine '{name}' is registered but not implemented in v0.1.x"
+                f"Engine '{name}' is registered but not implemented in v0.2.x"
             )
         raise EngineNotFoundError(f"Engine '{name}' not found in registry")
 

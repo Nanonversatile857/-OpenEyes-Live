@@ -32,8 +32,9 @@ manager = EngineManager(cache_dir="./models")
 manager.list_engines()
 # ['sampler', 'filter', 'encoder', 'compressor', 'vad', 'asr', 'speaker', 'llm', 'memory', 'mcp']
 
-# Download an engine
-manager.download("encoder", mirror="modelscope")
+# Download an engine's model files (resumable; tries huggingface first,
+# falls back to hf-mirror automatically — or pin one explicitly)
+manager.download("encoder", mirror="hf-mirror")
 
 # Load an engine
 engine = manager.load("encoder")

@@ -5,8 +5,7 @@ Source: docs/API_REFERENCE.md — "CLI Reference" section;
 
 Commands:
     openeyes list                                  List available engines
-    openeyes install <engine> [--mirror <name>]    Download an engine (creates cache dir;
-                                                 real download planned for v0.3.0)
+    openeyes install <engine> [--mirror <name>]    Download an engine's model files
     openeyes watch --source <src> --engines <e+e>  Start visual understanding
     openeyes --version                             Show version
 """
@@ -46,12 +45,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("list", help="List all available engines")
 
-    p_install = sub.add_parser("install", help="Download an engine")
+    p_install = sub.add_parser("install", help="Download an engine's model files")
     p_install.add_argument("engine", help="Engine name (see `openeyes list`)")
     p_install.add_argument(
         "--mirror",
         default=None,
-        help="Download mirror, e.g. 'modelscope' (default: primary source)",
+        help="Pin a download source, e.g. 'hf-mirror' "
+             "(default: huggingface with automatic hf-mirror fallback)",
     )
 
     p_watch = sub.add_parser("watch", help="Start visual understanding")
@@ -115,19 +115,36 @@ def cmd_list(manager: EngineManager) -> int:
         elif name in IMPLEMENTED_ENGINES or name in STANDALONE_ENGINES:
             status = "available"
         else:
-            status = "planned (v0.2.0+)"
+            status = "planned (v0.3.0+)"
         print(f"{name:<12} {info['version']:<8} {info['size_mb']:>5}MB  {status}")
     return 0
 
 
 def cmd_install(manager: EngineManager, engine: str, mirror: Optional[str]) -> int:
-    """Download (mock) an engine."""
-    path = manager.download(engine, mirror=mirror)
+    """Download an engine's model files with a progress display."""
     info = manager.engine_info(engine)
-    print(f"[stub] '{engine}' v{info['version']} ({info['size_mb']}MB) "
-          f"registered at {path}")
-    print("note: real model download is not implemented yet; "
-          "this only creates the cache directory.")
+    needs_files = bool(info.get("files"))
+
+    def report(eng: str, fname: str, done: int, total: int) -> None:
+        if total:
+            pct = done / total * 100
+            line = (f"  {fname}: {done / 1e6:.1f}/{total / 1e6:.1f} MB "
+                    f"({pct:5.1f}%)")
+        else:
+            line = f"  {fname}: {done / 1e6:.1f} MB"
+        print("\r" + line.ljust(72), end="", flush=True)
+        if total and done >= total:
+            print()  # newline when the file finishes
+
+    if needs_files:
+        print(f"Downloading '{engine}' v{info['version']} "
+              f"(~{info['size_mb']}MB) ...")
+    path = manager.download(engine, mirror=mirror, progress=report)
+    if needs_files:
+        print(f"[ok] '{engine}' installed at {path}")
+    else:
+        print(f"[ok] '{engine}' v{info['version']} is a built-in engine — "
+              f"no model files needed, registered at {path}")
     return 0
 
 

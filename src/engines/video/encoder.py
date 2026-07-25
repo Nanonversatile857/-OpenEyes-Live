@@ -63,7 +63,7 @@ class VisualEncoderEngine(BaseEngine):
     def metadata(self) -> EngineMetadata:
         return EngineMetadata(
             name="encoder",
-            version="0.1.0",
+            version="0.2.0",
             description="Encodes frames into visual embeddings (CLIP ViT-B/32, quantized ONNX, offline).",
             author="OpenEyes-Live",
             input_type="frames_rgb",

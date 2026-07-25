@@ -492,96 +492,63 @@ File: src/core/registry.yaml
 
 yaml
 # Engine Registry
-# All engines and their download URLs
+# All engines and their model download manifests (schema v2, v0.3.0).
+# Model engines declare `hf_repo` + a `files` list; each file records its
+# remote path in the HF repo, the local path under models/<engine>/, and
+# the expected byte size (integrity check). `source: internal` engines
+# are pure code and need no download.
 
 registry:
-  version: "1.0"
-  primary: "https://huggingface.co/OpenEyes-Live/engines"
-  mirror: "https://modelscope.cn/OpenEyes-Live/engines"
+  version: "2.0"
+  # Download sources, tried in order unless --mirror pins one.
+  sources:
+    huggingface: "https://huggingface.co"
+    hf-mirror: "https://hf-mirror.com"
+  default_source: "huggingface"
+  fallback_source: "hf-mirror"
 
 engines:
   # Video Pipeline
   sampler:
     name: "sampler"
     version: "0.1.0"
-    file: "sampler.zip"
     size_mb: 5
-    checksum: "sha256:abc123..."
     source: "internal"
-
-  filter:
-    name: "filter"
-    version: "0.1.0"
-    file: "filter.ort"
-    size_mb: 15
-    checksum: "sha256:def456..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
 
   encoder:
     name: "encoder"
-    version: "0.1.0"
-    file: "videomamba_t-q4.gguf"
-    size_mb: 200
-    checksum: "sha256:ghi789..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
-
-  compressor:
-    name: "compressor"
-    version: "0.1.0"
-    file: "compressor.pt"
-    size_mb: 20
-    checksum: "sha256:jkl012..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    version: "0.2.0"
+    size_mb: 89
+    source: "huggingface"
+    hf_repo: "Xenova/clip-vit-base-patch32"
+    files:
+      - remote: "onnx/vision_model_quantized.onnx"
+        local: "clip-vit-b32/vision_model_quantized.onnx"
+        size: 89117001
+      - remote: "preprocessor_config.json"
+        local: "clip-vit-b32/preprocessor_config.json"
+        size: 520
 
   # Audio Pipeline
   vad:
     name: "vad"
-    version: "0.1.0"
-    file: "silero_vad.onnx"
+    version: "0.2.0"
     size_mb: 2
-    checksum: "sha256:mno345..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+    source: "huggingface"
+    hf_repo: "onnx-community/silero-vad"
+    files:
+      - remote: "onnx/model.onnx"
+        local: "silero_vad.onnx"
+        size: 2243022
 
-  asr:
-    name: "asr"
-    version: "0.1.0"
-    file: "sense_voice_int8.onnx"
-    size_mb: 234
-    checksum: "sha256:pqr678..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
+  # ... asr (SenseVoice int8, 2 files), llm (Phi-3.5-vision int4, 11
+  # files) follow the same pattern — see src/core/registry.yaml.
 
   speaker:
     name: "speaker"
     version: "0.1.0"
-    file: "eres2net.onnx"
     size_mb: 30
-    checksum: "sha256:stu901..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
-
-  # Core Engines
-  llm:
-    name: "llm"
-    version: "0.1.0"
-    file: "qwen2.5-2b-q4.gguf"
-    size_mb: 400
-    checksum: "sha256:vwx234..."
-    source: "https://huggingface.co/OpenEyes-Live/models"
-
-  memory:
-    name: "memory"
-    version: "0.1.0"
-    file: "memory.db"
-    size_mb: 50
-    checksum: "sha256:yza567..."
-    source: "internal"
-
-  mcp:
-    name: "mcp"
-    version: "0.1.0"
-    file: "mcp_gateway.py"
-    size_mb: 10
-    checksum: "sha256:bcd890..."
-    source: "internal"
+    source: "planned"  # v0.3.0+
 ❌ Error Handling
 All engines must use standardized error codes:
 
