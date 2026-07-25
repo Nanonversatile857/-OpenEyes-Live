@@ -12,7 +12,7 @@
 [![Min Engine](https://img.shields.io/badge/Min_Engine-2MB-green)](https://github.com/vfvincentwong2026/-OpenEyes-Live)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](https://github.com/vfvincentwong2026/-OpenEyes-Live)
 [![Download](https://img.shields.io/badge/Download-ModelScope-blue?logo=alibabacloud)](https://modelscope.cn/organization/OpenEyes-Live)
-[![Version](https://img.shields.io/badge/Version-0.3.0-orange)](https://github.com/vfvincentwong2026/-OpenEyes-Live/releases)
+[![Version](https://img.shields.io/badge/Version-0.4.0-orange)](https://github.com/vfvincentwong2026/-OpenEyes-Live/releases)
 
 ---
 
@@ -225,15 +225,14 @@ Method	Description	Recommendation
 Local Camera	Run directly on the phone (Android support)	⭐⭐⭐⭐⭐
 IP Webcam App	Old phone runs IP Webcam, sends feed via WiFi	⭐⭐⭐⭐⭐
 USB Camera	Connect via OTG cable	⭐⭐⭐⭐
-📱 Tested Compatibility
-Coming soon in v0.2.0 release
+📱 Mobile Compatibility
+Mobile support is on the roadmap (see QUICKSTART_MOBILE.md for the Termux-based plan) — no phone models have been validated yet. Current development and testing happens on desktop (Windows/Linux/macOS); measured desktop numbers live in PERFORMANCE_BENCHMARK.md.
 
-Phone Model	Year	OS	Video Only	Video + Audio	Experience
-Xiaomi 6	2017	Android 9	✅ Smooth	🟡 Limited	Tested
-iPhone 8	2017	iOS 15	✅ Smooth	🟡 Limited	Tested
-Redmi Note 5	2018	Android 8	✅ Usable	❌ OOM	Tested
-Snapdragon 660+	2017+	Android 8+	✅ Recommended	⚠️ Testing	Ongoing
-Benchmark Methodology: All data tested with llama.cpp (GGUF Q4_K_M) on ambient 25°C with passive cooling. See PERFORMANCE_BENCHMARK.md for detailed methodology.
+Target hardware envelope (estimates, not yet measured):
+
+Phone Model	Year	OS	Video Only	Video + Audio	Status
+Snapdragon 660+	2017+	Android 8+	🎯 Target	🎯 Target	Planned
+Older devices	<2017	—	❌ Out of scope	❌ Out of scope	—
 
 🆚 Comparison with Similar Projects
 Dimension	OpenEyes-Live	Mobile-VideoGPT	MiniCPM-o	Vision Agents
@@ -302,7 +301,8 @@ Version	Goal	Key Features
 v0.1.0	Video pipeline MVP	Video_encoder + LLM + Camera + CLI ✅
 v0.2.0	Real engines	Real CLIP / Phi-3.5-vision VLM / Silero VAD / SenseVoice ASR + `openeyes listen` ✅
 v0.3.0	Real model distribution	`openeyes install` real downloads (resume + hf-mirror fallback) ✅
-v0.4.0	Full multimodal	Video + Audio + Memory + Proactive Alerts + Speaker Recognition
+v0.4.0	Speaker recognition	ERes2Net speaker ID + `listen --speaker` ("张三说：…") ✅
+v0.5.0	Full multimodal	Video + Audio + Memory fusion + Proactive Alerts
 v1.0.0	Stable release	MCP full support + Cross-platform + App
 🤝 Contributing
 We especially welcome contributions from:

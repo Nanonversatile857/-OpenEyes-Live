@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.4.0] - 2026-07-26
+
 ### Added
 - `openeyes listen --speaker` — real-time speaker identification on every
   transcribed segment ("张三 (0.98) 说：……", unknown speakers labelled
@@ -172,6 +176,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-> **Document Version:** v0.3.0
-> **Last Updated:** 2026-07-25
-> **Compatible with:** OpenEyes-Live v0.3.x
+> **Document Version:** v0.4.0
+> **Last Updated:** 2026-07-26
+> **Compatible with:** OpenEyes-Live v0.4.x
