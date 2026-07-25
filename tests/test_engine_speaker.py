@@ -146,6 +146,19 @@ class TestSpeakerEngineReal(unittest.TestCase):
         with self.assertRaises(EngineProcessError):
             self.engine.process({"samples": _speech(1.0)})
 
+    def test_add_embedding_roundtrip(self) -> None:
+        emb = self.engine.enroll("zhu", _speech())
+        self.engine.remove("zhu")
+        self.assertNotIn("zhu", self.engine.speakers)
+        self.engine.add_embedding("zhu", emb)
+        name, score = self.engine.identify(_speech(2.0))
+        self.assertEqual(name, "zhu")
+        self.assertGreater(score, 0.5)
+
+    def test_add_embedding_dim_mismatch(self) -> None:
+        with self.assertRaises(EngineProcessError):
+            self.engine.add_embedding("bad", [0.1] * 10)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,13 +7,16 @@ Commands:
     openeyes list                                  List available engines
     openeyes install <engine> [--mirror <name>]    Download an engine's model files
     openeyes watch --source <src> --engines <e+e>  Start visual understanding
+    openeyes listen [--speaker] [--enroll N:WAV]   Transcribe mic speech (+ speaker ID)
     openeyes --version                             Show version
 """
 
 import argparse
+import json
 import sys
 import time
-from typing import List, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -97,6 +100,28 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=0,
         help="Stop after N transcribed segments (default: 0 = run until Ctrl+C)",
+    )
+    p_listen.add_argument(
+        "--speaker",
+        action="store_true",
+        help="Identify who is speaking (loads the speaker engine and the "
+             "enrolled speaker database at models/speaker/enrolled.json)",
+    )
+    p_listen.add_argument(
+        "--enroll",
+        action="append",
+        default=[],
+        metavar="NAME:WAV",
+        help="Enroll a speaker from a 16kHz mono wav file; repeatable. "
+             "Implies --speaker.",
+    )
+    p_listen.add_argument(
+        "--enroll-mic",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="Enroll a speaker by speaking one sentence into the "
+             "microphone; repeatable. Implies --speaker.",
     )
     return parser
 
@@ -308,19 +333,110 @@ def cmd_mcp(manager: EngineManager, source: str, port: int) -> int:
     return 0
 
 
-def cmd_listen(manager: EngineManager, max_segments: int) -> int:
-    """Listen to the microphone: VAD segments speech, ASR transcribes it."""
+SPEAKER_DB_PATH = Path("./models/speaker/enrolled.json")
+UNKNOWN_SPEAKER = "未知说话人"
+
+
+def _load_speaker_db(engine: Any, path: Path) -> Dict[str, List[List[float]]]:
+    """Load enrolled embeddings from JSON into the speaker engine."""
+    if not path.exists():
+        return {}
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    db: Dict[str, List[List[float]]] = {}
+    for name, embeddings in raw.items():
+        vecs = [list(map(float, v)) for v in embeddings]
+        for vec in vecs:
+            engine.add_embedding(name, vec)
+        db[name] = vecs
+    return db
+
+
+def _save_speaker_db(db: Dict[str, List[List[float]]], path: Path) -> None:
+    """Persist enrolled embeddings (name -> list of 512-d vectors)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(db, ensure_ascii=False), encoding="utf-8"
+    )
+
+
+def _read_wav_16k(wav_path: str) -> np.ndarray:
+    """Read a 16kHz mono PCM wav into float32 samples."""
+    import wave
+
+    with wave.open(wav_path, "rb") as w:
+        if w.getframerate() != 16000 or w.getnchannels() != 1:
+            raise EngineError(
+                f"{wav_path}: expected a 16kHz mono wav, got "
+                f"{w.getframerate()}Hz x {w.getnchannels()}ch"
+            )
+        pcm = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
+    if len(pcm) == 0:
+        raise EngineError(f"{wav_path}: empty wav file")
+    return pcm.astype(np.float32) / 32768.0
+
+
+def cmd_listen(
+    manager: EngineManager,
+    max_segments: int,
+    speaker: bool = False,
+    enroll: Optional[List[str]] = None,
+    enroll_mic: Optional[List[str]] = None,
+) -> int:
+    """Listen to the microphone: VAD segments speech, ASR transcribes it.
+
+    With ``--speaker`` (implied by --enroll/--enroll-mic), each segment is
+    also matched against the enrolled speaker database and printed as
+    "张三说：……" (unknown speakers get 未知说话人).
+    """
     from src.runtime.microphone import Microphone
 
     vad = manager.load("vad")
     asr = manager.load("asr")
     print("engines loaded: vad, asr (real Silero VAD + SenseVoice)")
-    print("listening on default microphone (Ctrl+C to stop)")
+
+    speaker_engine = None
+    db: Dict[str, List[List[float]]] = {}
+    if speaker or enroll or enroll_mic:
+        speaker_engine = manager.load("speaker")
+        db = _load_speaker_db(speaker_engine, SPEAKER_DB_PATH)
+        if db:
+            print(f"speaker engine loaded; enrolled: {', '.join(sorted(db))}")
+        else:
+            print("speaker engine loaded; no enrolled speakers yet")
+
+        # Enroll from wav files first (no microphone interaction needed).
+        for spec in enroll or []:
+            if ":" not in spec:
+                raise EngineError(
+                    f"--enroll expects NAME:WAV, got '{spec}'"
+                )
+            name, wav_path = spec.split(":", 1)
+            emb = speaker_engine.enroll(name.strip(), _read_wav_16k(wav_path))
+            db.setdefault(name.strip(), []).append(emb.tolist())
+            print(f"enrolled '{name.strip()}' from {wav_path}")
 
     segments = 0
     voice: List[np.ndarray] = []
     try:
         with Microphone() as mic:
+            # Microphone enrollment: one VAD-detected sentence per name.
+            for name in enroll_mic or []:
+                name = name.strip()
+                input(f"按回车，然后请 '{name}' 对麦克风说一句话（约 3 秒）...")
+                emb = _capture_one_segment(mic, vad, speaker_engine, name)
+                db.setdefault(name, []).append(emb.tolist())
+                print(f"enrolled '{name}' from microphone")
+            if enroll_mic:
+                _save_speaker_db(db, SPEAKER_DB_PATH)
+                print(f"speaker database saved to {SPEAKER_DB_PATH}")
+            elif enroll:
+                _save_speaker_db(db, SPEAKER_DB_PATH)
+                print(f"speaker database saved to {SPEAKER_DB_PATH}")
+
+            print("listening on default microphone (Ctrl+C to stop)")
             while True:
                 chunk = mic.read(timeout=1.0)
                 if chunk is None:
@@ -329,25 +445,60 @@ def cmd_listen(manager: EngineManager, max_segments: int) -> int:
                 if result.data is not None:
                     voice.append(result.data)
                 if result.metadata["segment_ended"] and voice:
-                    text = asr.process(np.concatenate(voice)).data
+                    segments += int(_transcribe_and_print(
+                        asr, speaker_engine, np.concatenate(voice)
+                    ))
                     voice = []
-                    if text:
-                        segments += 1
-                        print(f"[{time.strftime('%H:%M:%S')}] {text}")
-                        if max_segments and segments >= max_segments:
-                            break
+                    if max_segments and segments >= max_segments:
+                        break
     except KeyboardInterrupt:
         print("\nstopped by user.")
     finally:
         if voice:  # flush trailing speech
-            text = asr.process(np.concatenate(voice)).data
-            if text:
-                print(f"[{time.strftime('%H:%M:%S')}] {text}")
+            _transcribe_and_print(asr, speaker_engine, np.concatenate(voice))
         manager.unload("vad")
         manager.unload("asr")
+        if speaker_engine is not None:
+            manager.unload("speaker")
 
     print(f"transcribed {segments} segment(s).")
     return 0
+
+
+def _capture_one_segment(mic: Any, vad: Any, speaker_engine: Any, name: str) -> np.ndarray:
+    """Capture one VAD-terminated speech segment and enroll it.
+
+    Returns the enrolled embedding. Raises EngineError on timeout (~30s
+    of silence without any detected speech).
+    """
+    voice: List[np.ndarray] = []
+    deadline = time.monotonic() + 30.0
+    while time.monotonic() < deadline:
+        chunk = mic.read(timeout=1.0)
+        if chunk is None:
+            continue
+        result = vad.process(chunk)
+        if result.data is not None:
+            voice.append(result.data)
+        if result.metadata["segment_ended"] and voice:
+            audio = np.concatenate(voice)
+            print(f"captured {len(audio) / 16000:.1f}s of speech")
+            return speaker_engine.enroll(name, audio)
+    raise EngineError(f"enrollment timed out — no speech heard for '{name}'")
+
+
+def _transcribe_and_print(asr: Any, speaker_engine: Any, audio: np.ndarray) -> bool:
+    """ASR one segment (plus optional speaker ID) and print one line."""
+    text = asr.process(audio).data
+    if not text:
+        return False
+    prefix = ""
+    if speaker_engine is not None and speaker_engine.speakers:
+        name, score = speaker_engine.identify(audio)
+        label = name if name else UNKNOWN_SPEAKER
+        prefix = f"{label} ({score:.2f}) 说："
+    print(f"[{time.strftime('%H:%M:%S')}] {prefix}{text}")
+    return True
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -368,7 +519,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         if args.command == "mcp":
             return cmd_mcp(manager, args.source, args.port)
         if args.command == "listen":
-            return cmd_listen(manager, args.max_segments)
+            return cmd_listen(
+                manager, args.max_segments,
+                speaker=args.speaker,
+                enroll=args.enroll,
+                enroll_mic=args.enroll_mic,
+            )
     except EngineError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

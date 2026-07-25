@@ -35,6 +35,77 @@ class TestCli(unittest.TestCase):
             rc = main(["install", "nope"])
         self.assertEqual(rc, 1)
 
+    def test_listen_help_mentions_speaker(self) -> None:
+        buf = io.StringIO()
+        try:
+            with redirect_stdout(buf):
+                main(["listen", "--help"])
+        except SystemExit:
+            pass
+        out = buf.getvalue()
+        self.assertIn("--speaker", out)
+        self.assertIn("--enroll", out)
+
+
+class _StubSpeakerEngine:
+    """Records add_embedding calls without a real model."""
+
+    def __init__(self) -> None:
+        self.added = []
+
+    def add_embedding(self, name, vec) -> None:
+        self.added.append((name, list(vec)))
+
+
+class TestSpeakerDatabase(unittest.TestCase):
+    """Speaker DB persistence helpers — no model required."""
+
+    def test_save_load_roundtrip(self) -> None:
+        import tempfile
+        from pathlib import Path
+
+        from src.cli.main import _load_speaker_db, _save_speaker_db
+
+        db = {"张三": [[0.1] * 512, [0.2] * 512], "lisa": [[0.3] * 512]}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "enrolled.json"
+            _save_speaker_db(db, path)
+            engine = _StubSpeakerEngine()
+            loaded = _load_speaker_db(engine, path)
+        self.assertEqual(loaded, db)
+        # 2 embeddings for 张三 + 1 for lisa
+        self.assertEqual(len(engine.added), 3)
+        self.assertEqual(engine.added[0][0], "张三")
+
+    def test_load_missing_file_returns_empty(self) -> None:
+        from pathlib import Path
+
+        from src.cli.main import _load_speaker_db
+
+        engine = _StubSpeakerEngine()
+        self.assertEqual(_load_speaker_db(engine, Path("./nope.json")), {})
+        self.assertEqual(engine.added, [])
+
+    def test_read_wav_16k_rejects_wrong_rate(self) -> None:
+        import tempfile
+        import wave
+        from pathlib import Path
+
+        import numpy as np
+
+        from src.cli.main import _read_wav_16k
+        from src.core.errors import EngineError
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "bad.wav"
+            with wave.open(str(path), "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(8000)  # wrong rate
+                w.writeframes(np.zeros(800, dtype=np.int16).tobytes())
+            with self.assertRaises(EngineError):
+                _read_wav_16k(str(path))
+
 
 class TestCameraSourceNormalization(unittest.TestCase):
     def test_local_aliases(self) -> None:

@@ -213,6 +213,11 @@ openeyes watch --source camera --engines encoder+llm
 # Transcribe microphone speech in real time (VAD + ASR)
 openeyes listen
 
+# With speaker identification: enroll once, then "张三说：……"
+openeyes listen --enroll-mic 张三     # enroll by speaking one sentence
+openeyes listen --enroll 张三:me.wav  # or enroll from a 16kHz mono wav
+openeyes listen --speaker             # enrolled DB auto-loads next time
+
 # Start MCP Server (for Claude, Cursor, etc.)
 openeyes mcp --port 3000
 How to Connect Your Phone

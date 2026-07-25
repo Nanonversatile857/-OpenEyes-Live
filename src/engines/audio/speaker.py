@@ -142,10 +142,24 @@ class SpeakerEngine(BaseEngine):
         if not name:
             raise EngineProcessError("speaker name must be non-empty")
         embedding = self._embed(self._normalize_audio(audio))
-        ok = self._manager.add(name, embedding.tolist())
+        self.add_embedding(name, embedding)
+        return embedding
+
+    def add_embedding(self, name: str, embedding: Any) -> None:
+        """Register a precomputed embedding (e.g. loaded from a speaker DB)."""
+        if not self._loaded:
+            raise EngineProcessError("Engine not loaded")
+        if not name:
+            raise EngineProcessError("speaker name must be non-empty")
+        vec = np.asarray(embedding, dtype=np.float32).ravel()
+        if vec.shape[0] != self._extractor.dim:
+            raise EngineProcessError(
+                f"embedding dim mismatch: got {vec.shape[0]}, "
+                f"expected {self._extractor.dim}"
+            )
+        ok = self._manager.add(name, vec.tolist())
         if not ok:
             raise EngineProcessError(f"failed to enroll speaker '{name}'")
-        return embedding
 
     def identify(self, audio: np.ndarray) -> Tuple[str, float]:
         """Identify the closest enrolled speaker.

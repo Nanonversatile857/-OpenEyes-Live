@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `openeyes listen --speaker` — real-time speaker identification on every
+  transcribed segment ("张三 (0.98) 说：……", unknown speakers labelled
+  未知说话人 with their best score)
+- Speaker enrollment: `--enroll NAME:WAV` (16kHz mono wav file) and
+  `--enroll-mic NAME` (speak one sentence live); the enrolled database
+  persists to models/speaker/enrolled.json and auto-loads on later runs
+- `SpeakerEngine.add_embedding()` for loading precomputed embeddings
 - SpeakerEngine — audio pipeline Stage 3, REAL implementation (3D-Speaker
   ERes2Net base, ONNX, ~38MB, zh-cn, 16kHz, via sherpa-onnx): 512-d
   speaker embeddings plus `enroll` / `identify` / `remove` with a
