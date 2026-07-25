@@ -9,6 +9,7 @@ Model-dependent tests are skipped when the model is not present
 
 import unittest
 import wave
+from importlib.util import find_spec
 from pathlib import Path
 
 import numpy as np
@@ -19,7 +20,12 @@ from src.engines.audio.asr import ASREngine
 MODEL_PATH = Path("./models/asr/sense-voice/model.int8.onnx")
 TOKENS_PATH = Path("./models/asr/sense-voice/tokens.txt")
 TEST_WAV = Path("./models/asr/sense-voice/test_zh.wav")
-HAS_MODEL = MODEL_PATH.exists() and TOKENS_PATH.exists() and TEST_WAV.exists()
+HAS_MODEL = (
+    MODEL_PATH.exists()
+    and TOKENS_PATH.exists()
+    and TEST_WAV.exists()
+    and find_spec("sherpa_onnx") is not None
+)
 
 
 def _load_test_audio() -> np.ndarray:

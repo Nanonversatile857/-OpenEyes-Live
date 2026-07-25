@@ -5,12 +5,18 @@ Source: docs/VIDEO_PIPELINE.md — "Stage 4: Token Compressor Engine";
 """
 
 import unittest
+from importlib.util import find_spec
 from pathlib import Path
 
 import numpy as np
 
 from src.core.errors import EngineProcessError
 from src.engines.video.compressor import TokenCompressorEngine
+
+HAS_ENCODER_MODEL = (
+    Path("./models/encoder/clip-vit-b32/vision_model_quantized.onnx").exists()
+    and find_spec("onnxruntime") is not None
+)
 
 
 def _tokens(t: int = 128, d: int = 512, seed: int = 7) -> np.ndarray:
@@ -96,10 +102,7 @@ class TestTokenCompressorEngine(unittest.TestCase):
         self.assertFalse(engine.is_loaded())
 
 
-@unittest.skipUnless(
-    Path("./models/encoder/clip-vit-b32/vision_model_quantized.onnx").exists(),
-    "CLIP vision model not downloaded",
-)
+@unittest.skipUnless(HAS_ENCODER_MODEL, "CLIP vision model not downloaded")
 class TestFullVideoPipeline(unittest.TestCase):
     """sampler -> filter -> encoder -> compressor end-to-end.
 

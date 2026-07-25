@@ -9,6 +9,7 @@ model and generates text on CPU, so it is slow by nature.
 """
 
 import unittest
+from importlib.util import find_spec
 from pathlib import Path
 
 import numpy as np
@@ -17,7 +18,10 @@ from src.core.errors import EngineLoadError, EngineProcessError
 from src.engines.core.llm import LanguageEngine
 
 MODEL_DIR = Path("./models/llm/phi-3.5-vision-int4")
-HAS_MODEL = (MODEL_DIR / "genai_config.json").exists()
+HAS_MODEL = (
+    (MODEL_DIR / "genai_config.json").exists()
+    and find_spec("onnxruntime_genai") is not None
+)
 
 
 def _frame(seed: int = 0) -> np.ndarray:

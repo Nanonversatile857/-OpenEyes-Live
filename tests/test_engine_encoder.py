@@ -8,6 +8,7 @@ Model-dependent tests are skipped when the ONNX model is not present
 """
 
 import unittest
+from importlib.util import find_spec
 from pathlib import Path
 
 import numpy as np
@@ -16,7 +17,7 @@ from src.core.errors import EngineLoadError, EngineProcessError
 from src.engines.video.encoder import VisualEncoderEngine
 
 MODEL_PATH = Path("./models/encoder/clip-vit-b32/vision_model_quantized.onnx")
-HAS_MODEL = MODEL_PATH.exists()
+HAS_MODEL = MODEL_PATH.exists() and find_spec("onnxruntime") is not None
 
 
 def _frame(seed: int, size=(64, 64, 3)) -> np.ndarray:

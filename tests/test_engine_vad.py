@@ -9,6 +9,7 @@ Model-dependent tests are skipped when the ONNX model is not present
 
 import unittest
 import wave
+from importlib.util import find_spec
 from pathlib import Path
 
 import numpy as np
@@ -18,7 +19,11 @@ from src.engines.audio.vad import SILENCE_CHUNKS_TO_END, VADEngine
 
 MODEL_PATH = Path("./models/vad/silero_vad.onnx")
 TEST_WAV = Path("./models/asr/sense-voice/test_zh.wav")
-HAS_MODEL = MODEL_PATH.exists() and TEST_WAV.exists()
+HAS_MODEL = (
+    MODEL_PATH.exists()
+    and TEST_WAV.exists()
+    and find_spec("onnxruntime") is not None
+)
 
 SAMPLE_RATE = 16000
 CHUNK = 480  # 30 ms @ 16 kHz

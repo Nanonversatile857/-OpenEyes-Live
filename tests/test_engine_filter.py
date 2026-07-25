@@ -5,11 +5,18 @@ Source: docs/VIDEO_PIPELINE.md — "Stage 2: Frame Filter Engine";
 """
 
 import unittest
+from importlib.util import find_spec
+from pathlib import Path
 
 import numpy as np
 
 from src.core.errors import EngineProcessError
 from src.engines.video.filter import FrameFilterEngine
+
+HAS_ENCODER_MODEL = (
+    Path("./models/encoder/clip-vit-b32/vision_model_quantized.onnx").exists()
+    and find_spec("onnxruntime") is not None
+)
 
 
 def _busy_frame(seed: int) -> np.ndarray:
@@ -105,6 +112,7 @@ class TestFrameFilterEngine(unittest.TestCase):
         self.assertFalse(engine.is_loaded())
 
 
+@unittest.skipUnless(HAS_ENCODER_MODEL, "CLIP vision model not downloaded")
 class TestVideoPipelineIntegration(unittest.TestCase):
     """sampler -> filter -> encoder chain (docs/ENGINE_SPEC.md integration tests)."""
 
