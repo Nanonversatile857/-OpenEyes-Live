@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.2.0] - 2026-07-25
+
 ### Added
 - ASREngine — audio pipeline Stage 2, REAL implementation (SenseVoice int8
   via sherpa-onnx, ~234MB, fully offline, punctuation + ITN built in;
@@ -31,7 +35,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (ONNX, 2MB, onnxruntime, fully offline); documented state machine unchanged
 - requirements.txt / setup.py: added onnxruntime, sherpa-onnx, sounddevice
 - Model-dependent tests skip automatically when models are not downloaded
-  (CI stays green without the ~325MB of model weights)
+  (CI stays green without the ~325MB of model weights); 118 unit tests total
+
+### Fixed
+- CI: model-dependent tests are now gated on BOTH model files and runtime
+  dependencies (onnxruntime / sherpa_onnx / onnxruntime_genai), and the
+  sampler->filter->encoder integration test skips without the CLIP model —
+  the model-less CI matrix is green again
 
 ---
 
@@ -116,6 +126,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-> **Document Version:** v0.1.0
+> **Document Version:** v0.2.0
 > **Last Updated:** 2026-07-25
-> **Compatible with:** OpenEyes-Live v0.1.x
+> **Compatible with:** OpenEyes-Live v0.2.x

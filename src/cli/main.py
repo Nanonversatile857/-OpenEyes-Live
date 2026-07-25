@@ -5,7 +5,8 @@ Source: docs/API_REFERENCE.md — "CLI Reference" section;
 
 Commands:
     openeyes list                                  List available engines
-    openeyes install <engine> [--mirror <name>]    Download an engine (mock in v0.1.0)
+    openeyes install <engine> [--mirror <name>]    Download an engine (creates cache dir;
+                                                 real download planned for v0.3.0)
     openeyes watch --source <src> --engines <e+e>  Start visual understanding
     openeyes --version                             Show version
 """
@@ -21,7 +22,7 @@ from src.core.engine_manager import EngineManager
 from src.core.errors import EngineError
 from src.runtime.camera import Camera
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 # Engines usable in the `watch` pipeline in v0.1.x.
 IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm", "memory"}
@@ -123,9 +124,10 @@ def cmd_install(manager: EngineManager, engine: str, mirror: Optional[str]) -> i
     """Download (mock) an engine."""
     path = manager.download(engine, mirror=mirror)
     info = manager.engine_info(engine)
-    print(f"[mock] '{engine}' v{info['version']} ({info['size_mb']}MB) "
+    print(f"[stub] '{engine}' v{info['version']} ({info['size_mb']}MB) "
           f"registered at {path}")
-    print("note: v0.1.0 does not download real model files yet.")
+    print("note: real model download is not implemented yet; "
+          "this only creates the cache directory.")
     return 0
 
 

@@ -3,15 +3,16 @@
 > **一个模块化、可插拔、端云协同的端侧视频AI基础设施。**
 > —— 把最新的端侧多模态模型，变成可独立下载、按需加载、自由组合的AI引擎。
 
-[![GitHub stars](https://img.shields.io/github/stars/vfvincentwong2026/OpenEyes-Live?style=social)](https://github.com/vfvincentwong2026/OpenEyes-Live/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/vfvincentwong2026/-OpenEyes-Live?style=social)](https://github.com/vfvincentwong2026/-OpenEyes-Live/stargazers)
 [![CI](https://github.com/vfvincentwong2026/-OpenEyes-Live/actions/workflows/ci.yml/badge.svg)](https://github.com/vfvincentwong2026/-OpenEyes-Live/actions/workflows/ci.yml)
-[![GitHub forks](https://img.shields.io/github/forks/vfvincentwong2026/OpenEyes-Live?style=social)](https://github.com/vfvincentwong2026/OpenEyes-Live/network/members)
+[![GitHub forks](https://img.shields.io/github/forks/vfvincentwong2026/-OpenEyes-Live?style=social)](https://github.com/vfvincentwong2026/-OpenEyes-Live/network/members)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
-[![Min Engine](https://img.shields.io/badge/Min_Engine-80MB-green)](https://github.com/vfvincentwong2026/OpenEyes-Live)
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Linux-lightgrey)](https://github.com/vfvincentwong2026/OpenEyes-Live)
+[![Tests](https://img.shields.io/badge/Tests-118%20passing-brightgreen)](https://github.com/vfvincentwong2026/-OpenEyes-Live/actions)
+[![Min Engine](https://img.shields.io/badge/Min_Engine-2MB-green)](https://github.com/vfvincentwong2026/-OpenEyes-Live)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](https://github.com/vfvincentwong2026/-OpenEyes-Live)
 [![Download](https://img.shields.io/badge/Download-ModelScope-blue?logo=alibabacloud)](https://modelscope.cn/organization/OpenEyes-Live)
-[![Version](https://img.shields.io/badge/Version-0.1.0-orange)](https://github.com/vfvincentwong2026/OpenEyes-Live/releases)
+[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](https://github.com/vfvincentwong2026/-OpenEyes-Live/releases)
 
 ---
 
@@ -294,9 +295,9 @@ Model download slow / fails	Network issues (China)	Use --mirror=modelscope flag
 Thermal throttling	Continuous high load	Reduce FPS to 5-10fps, remove phone case
 🗺️ Roadmap
 Version	Goal	Key Features
-v0.1.0	Video pipeline MVP	Video_encoder + LLM + Camera + CLI
-v0.2.0	Audio pipeline	VAD + ASR + Speaker Recognition
-v0.3.0	Full multimodal	Video + Audio + Memory + Proactive Alerts
+v0.1.0	Video pipeline MVP	Video_encoder + LLM + Camera + CLI ✅
+v0.2.0	Real engines	Real CLIP / Phi-3.5-vision VLM / Silero VAD / SenseVoice ASR + `openeyes listen` ✅
+v0.3.0	Full multimodal	Video + Audio + Memory + Proactive Alerts + Speaker Recognition
 v1.0.0	Stable release	MCP full support + Cross-platform + App
 🤝 Contributing
 We especially welcome contributions from:
