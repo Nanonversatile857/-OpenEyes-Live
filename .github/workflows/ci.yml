@@ -1,0 +1,45 @@
+# OpenEyes-Live CI
+# Runs the full unit-test suite on every push / PR to main.
+#
+# Note: only the test-time dependencies (numpy, PyYAML) are installed here.
+# The heavier runtime deps in requirements.txt (opencv-python, llama-cpp-python,
+# sentence-transformers, faiss-cpu) are not needed by the current test suite
+# (engines are mock implementations; cv2 is imported lazily).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: test (py${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install "numpy>=1.24.0" "PyYAML>=6.0"
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Smoke test CLI (openeyes list)
+        run: python -m src.cli.main list

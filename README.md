@@ -4,6 +4,7 @@
 > —— 把最新的端侧多模态模型，变成可独立下载、按需加载、自由组合的AI引擎。
 
 [![GitHub stars](https://img.shields.io/github/stars/vfvincentwong2026/OpenEyes-Live?style=social)](https://github.com/vfvincentwong2026/OpenEyes-Live/stargazers)
+[![CI](https://github.com/vfvincentwong2026/-OpenEyes-Live/actions/workflows/ci.yml/badge.svg)](https://github.com/vfvincentwong2026/-OpenEyes-Live/actions/workflows/ci.yml)
 [![GitHub forks](https://img.shields.io/github/forks/vfvincentwong2026/OpenEyes-Live?style=social)](https://github.com/vfvincentwong2026/OpenEyes-Live/network/members)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
