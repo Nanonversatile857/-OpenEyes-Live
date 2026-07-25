@@ -1,0 +1,92 @@
+# Engine Registry
+# All engines and their download URLs
+# Source: docs/ENGINE_SPEC.md — "Engine Registry Format" section.
+
+registry:
+  version: "1.0"
+  primary: "https://huggingface.co/OpenEyes-Live/engines"
+  mirror: "https://modelscope.cn/OpenEyes-Live/engines"
+
+engines:
+  # Video Pipeline
+  sampler:
+    name: "sampler"
+    version: "0.1.0"
+    file: "sampler.zip"
+    size_mb: 5
+    checksum: "sha256:abc123..."
+    source: "internal"
+
+  filter:
+    name: "filter"
+    version: "0.1.0"
+    file: "filter.ort"
+    size_mb: 15
+    checksum: "sha256:def456..."
+    source: "https://huggingface.co/OpenEyes-Live/models"
+
+  encoder:
+    name: "encoder"
+    version: "0.1.0"
+    file: "videomamba_t-q4.gguf"
+    size_mb: 200
+    checksum: "sha256:ghi789..."
+    source: "https://huggingface.co/OpenEyes-Live/models"
+
+  compressor:
+    name: "compressor"
+    version: "0.1.0"
+    file: "compressor.pt"
+    size_mb: 20
+    checksum: "sha256:jkl012..."
+    source: "https://huggingface.co/OpenEyes-Live/models"
+
+  # Audio Pipeline
+  vad:
+    name: "vad"
+    version: "0.1.0"
+    file: "silero_vad.onnx"
+    size_mb: 2
+    checksum: "sha256:mno345..."
+    source: "https://huggingface.co/OpenEyes-Live/models"
+
+  asr:
+    name: "asr"
+    version: "0.1.0"
+    file: "sense_voice_int8.onnx"
+    size_mb: 234
+    checksum: "sha256:pqr678..."
+    source: "https://huggingface.co/OpenEyes-Live/models"
+
+  speaker:
+    name: "speaker"
+    version: "0.1.0"
+    file: "eres2net.onnx"
+    size_mb: 30
+    checksum: "sha256:stu901..."
+    source: "https://huggingface.co/OpenEyes-Live/models"
+
+  # Core Engines
+  llm:
+    name: "llm"
+    version: "0.1.0"
+    file: "qwen2.5-2b-q4.gguf"
+    size_mb: 400
+    checksum: "sha256:vwx234..."
+    source: "https://huggingface.co/OpenEyes-Live/models"
+
+  memory:
+    name: "memory"
+    version: "0.1.0"
+    file: "memory.db"
+    size_mb: 50
+    checksum: "sha256:yza567..."
+    source: "internal"
+
+  mcp:
+    name: "mcp"
+    version: "0.1.0"
+    file: "mcp_gateway.py"
+    size_mb: 10
+    checksum: "sha256:bcd890..."
+    source: "internal"
