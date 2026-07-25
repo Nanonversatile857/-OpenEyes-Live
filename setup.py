@@ -14,6 +14,9 @@ setup(
         "numpy>=1.24.0",
         "llama-cpp-python>=0.2.0",
         "PyYAML>=6.0",
+        "onnxruntime>=1.17.0",
+        "sherpa-onnx>=1.10.0",
+        "sounddevice>=0.4.6",
     ],
     python_requires=">=3.10",
 )

@@ -134,6 +134,10 @@ class EngineManager:
             from src.engines.audio.vad import VADEngine
 
             return VADEngine
+        if name == "asr":
+            from src.engines.audio.asr import ASREngine
+
+            return ASREngine
         if name in self._registry.get("engines", {}):
             raise EngineNotFoundError(
                 f"Engine '{name}' is registered but not implemented in v0.1.x"

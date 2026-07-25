@@ -1,8 +1,10 @@
 """Audio engines (docs/AUDIO_PIPELINE.md).
 
-v0.2.0 adds VADEngine; ASR and Speaker engines are planned next.
+v0.2.0: VADEngine (real Silero VAD) and ASREngine (real SenseVoice);
+the Speaker engine is planned next.
 """
 
+from .asr import ASREngine
 from .vad import VADEngine
 
-__all__ = ["VADEngine"]
+__all__ = ["VADEngine", "ASREngine"]

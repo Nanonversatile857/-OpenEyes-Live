@@ -10,8 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- VADEngine — audio pipeline Stage 1 (RMS-energy mock scorer, documented
-  state machine: trailing-silence segment end + max-duration cut)
+- ASREngine — audio pipeline Stage 2, REAL implementation (SenseVoice int8
+  via sherpa-onnx, ~234MB, fully offline, punctuation + ITN built in;
+  verified 20x real-time on desktop CPU)
+- Microphone capture runtime (`src/runtime/microphone.py`, sounddevice/PortAudio)
+- `openeyes listen` — real-time microphone speech transcription (VAD + ASR)
+
+### Changed
+- VADEngine — audio pipeline Stage 1, REPLACED mock with real Silero VAD
+  (ONNX, 2MB, onnxruntime, fully offline); documented state machine unchanged
+- requirements.txt / setup.py: added onnxruntime, sherpa-onnx, sounddevice
+- Model-dependent tests skip automatically when models are not downloaded
+  (CI stays green without the ~236MB of model weights)
 
 ---
 

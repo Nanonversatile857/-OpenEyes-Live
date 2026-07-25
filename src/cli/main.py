@@ -27,8 +27,8 @@ __version__ = "0.1.0"
 IMPLEMENTED_ENGINES = {"sampler", "filter", "encoder", "compressor", "llm", "memory"}
 
 # Engines implemented but launched via their own command or pipeline stage
-# (not yet wired into the watch pipeline).
-STANDALONE_ENGINES = {"mcp", "vad"}
+# (not wired into the watch pipeline).
+STANDALONE_ENGINES = {"mcp", "vad", "asr"}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -88,6 +88,14 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=3000,
         help="Reserved for the future HTTP transport (default: 3000)",
+    )
+
+    p_listen = sub.add_parser("listen", help="Transcribe microphone speech (VAD + ASR)")
+    p_listen.add_argument(
+        "--max-segments",
+        type=int,
+        default=0,
+        help="Stop after N transcribed segments (default: 0 = run until Ctrl+C)",
     )
     return parser
 
@@ -275,6 +283,48 @@ def cmd_mcp(manager: EngineManager, source: str, port: int) -> int:
     return 0
 
 
+def cmd_listen(manager: EngineManager, max_segments: int) -> int:
+    """Listen to the microphone: VAD segments speech, ASR transcribes it."""
+    from src.runtime.microphone import Microphone
+
+    vad = manager.load("vad")
+    asr = manager.load("asr")
+    print("engines loaded: vad, asr (real Silero VAD + SenseVoice)")
+    print("listening on default microphone (Ctrl+C to stop)")
+
+    segments = 0
+    voice: List[np.ndarray] = []
+    try:
+        with Microphone() as mic:
+            while True:
+                chunk = mic.read(timeout=1.0)
+                if chunk is None:
+                    continue
+                result = vad.process(chunk)
+                if result.data is not None:
+                    voice.append(result.data)
+                if result.metadata["segment_ended"] and voice:
+                    text = asr.process(np.concatenate(voice)).data
+                    voice = []
+                    if text:
+                        segments += 1
+                        print(f"[{time.strftime('%H:%M:%S')}] {text}")
+                        if max_segments and segments >= max_segments:
+                            break
+    except KeyboardInterrupt:
+        print("\nstopped by user.")
+    finally:
+        if voice:  # flush trailing speech
+            text = asr.process(np.concatenate(voice)).data
+            if text:
+                print(f"[{time.strftime('%H:%M:%S')}] {text}")
+        manager.unload("vad")
+        manager.unload("asr")
+
+    print(f"transcribed {segments} segment(s).")
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """CLI entry point."""
     parser = build_parser()
@@ -292,6 +342,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             )
         if args.command == "mcp":
             return cmd_mcp(manager, args.source, args.port)
+        if args.command == "listen":
+            return cmd_listen(manager, args.max_segments)
     except EngineError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

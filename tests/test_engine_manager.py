@@ -59,9 +59,9 @@ class TestEngineManager(unittest.TestCase):
         self.assertIs(first, second)
 
     def test_load_unimplemented_engine(self) -> None:
-        # Registered in registry.yaml but not implemented in v0.1.0.
+        # Registered in registry.yaml but not implemented yet.
         with self.assertRaises(EngineNotFoundError):
-            self.manager.load("asr")
+            self.manager.load("speaker")
 
     def test_unload_idempotent(self) -> None:
         self.manager.unload("encoder")  # never loaded — must not raise

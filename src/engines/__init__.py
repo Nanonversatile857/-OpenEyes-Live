@@ -4,9 +4,11 @@ Source: docs/ENGINE_SPEC.md — "Engine Registration" section.
 
 Implemented: the full video pipeline (``sampler``, ``filter``, ``encoder``,
 ``compressor``), the core engines (``llm``, ``memory``, ``mcp``) and the
-first audio engine (``vad``). ``asr`` and ``speaker`` are planned.
+audio engines ``vad`` (real Silero VAD) and ``asr`` (real SenseVoice).
+``speaker`` is planned.
 """
 
+from .audio.asr import ASREngine
 from .audio.vad import VADEngine
 from .core.llm import LanguageEngine
 from .core.mcp_gateway import MCPGateway
@@ -25,4 +27,5 @@ __all__ = [
     "MemoryEngine",
     "MCPGateway",
     "VADEngine",
+    "ASREngine",
 ]
